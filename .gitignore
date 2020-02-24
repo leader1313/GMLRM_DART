@@ -2,3 +2,4 @@ data/action/*.xlsx
 data/state/*.xlsx
 v-rep_model/
 *.pyc
+.gitignore

@@ -13,7 +13,7 @@ Sup = Supervisor(0.002)
 
 def initialize():
     global state, action
-    state , action = save.initDataframe()
+    state , action = save.initDataframe(2)
 
 
 def shutdown():
@@ -37,7 +37,7 @@ def main():
         axes, buttons = Pub.joyInput()
         s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
         a = axes
-        temp_state, temp_action = save.tempDataframe(s, a)
+        temp_state, temp_action = save.tempDataframe(s, a, 2)
         
         if buttons[2] :
             Pub.reset()
