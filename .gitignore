@@ -3,3 +3,5 @@ data/state/*.xlsx
 v-rep_model/
 *.pyc
 .gitignore
+tools/*.pyc
+model/

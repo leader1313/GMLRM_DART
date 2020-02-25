@@ -30,7 +30,7 @@ class Save(object):
 
         return self.temp_state, self.temp_action
 
-    def dataSampling(self, dataframe, temp_data):
+    def dataAppend(self, dataframe, temp_data):
         dataframe = dataframe.append(temp_data, ignore_index = True)
         return dataframe
 
@@ -69,7 +69,7 @@ def main():
         s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
         a = axes
         temp_state, temp_action = save.tempDataframe(s, a)
-        action = save.dataSampling(action,temp_action)
+        action = save.dataAppend(action,temp_action)
         if step == 100 :
             save.dataSave(action,1,2)
             break
