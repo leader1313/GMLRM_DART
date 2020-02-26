@@ -1,5 +1,6 @@
-import pandas as pd
 from pandas import Series, DataFrame
+import pandas as pd
+import torch
 
 class Load(object):
     def __init__(self,dir_path):
@@ -14,6 +15,10 @@ class Load(object):
         numpy_array = dataframe.to_numpy()
         return numpy_array
     
+    def num_to_ten(self, numpy_array):
+        tensor = torch.from_numpy(numpy_array)
+        return tensor
+
     def dataLoad(self, dataNumber):
         state_name = 'state/state'+ str(dataNumber)
         action_name = 'action/action'+ str(dataNumber)

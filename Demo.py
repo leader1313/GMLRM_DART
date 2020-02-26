@@ -9,11 +9,12 @@ save = Save('data/')
 Sub = Subscriber()
 Pub = Publisher()
 fail = Fail()
-Sup = Supervisor(0.002)
+Sup = Supervisor(0)
+Num_goal = 1
 
 def initialize():
     global state, action
-    state , action = save.initDataframe(2)
+    state , action = save.initDataframe(Num_goal)
 
 
 def shutdown():
@@ -37,7 +38,7 @@ def main():
         axes, buttons = Pub.joyInput()
         s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
         a = axes
-        temp_state, temp_action = save.tempDataframe(s, a, 2)
+        temp_state, temp_action = save.tempDataframe(s, a, Num_goal)
         
         if buttons[2] :
             Pub.reset()

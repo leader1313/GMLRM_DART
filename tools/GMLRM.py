@@ -15,8 +15,12 @@ class GMLRM:
         self.M = M
         self.T = T
         self.Phi = np.zeros((self.N,self.M))
-        self.phi_mean = np.zeros(self.D)+1
-        self.phi_sigma = np.diag((np.zeros(self.D)+1))
+        self.phi_sigma = np.diag((np.zeros(self.D)+0.05))
+        self.X_Max = np.array([-0.41,0.22,-0.31,0.22])
+        self.X_Min = np.array([-1.1,-0.42,-1.1,-0.42])
+
+        self.range = np.zeros(self.D)
+        self.biasRange()
         self.Init_phi()
         
         #Variable
@@ -51,10 +55,15 @@ class GMLRM:
         return B
     #phi : bias
     def cal_phi(self, X, m):
-        phi = self.Gaussian_bias(X,m*self.phi_mean,self.phi_sigma)
+        mean = self.X_Min + m*self.range
+        sigma = self.phi_sigma
+        phi = self.Gaussian_bias(X, mean, sigma)
         return phi
 
     #=============== Update method =================
+    def biasRange(self):
+        self.range = (self.X_Max-self.X_Min)/(self.M + 1)
+        
     def Init_phi(self):
         for m in range(self.M):
             for n in range(self.N):
@@ -79,7 +88,6 @@ class GMLRM:
             for k in range(self.K):
                 self.r[n,k] = self.responsibility(n, k)
                 self.R[k,n,n] = self.r[n,k]
-        print(self.r)
 
     def maximization(self):
         sum_r = np.zeros(self.K)
@@ -104,7 +112,8 @@ class GMLRM:
         for t in range(self.T):
             self.expectation()
             self.maximization()
-
+            print(self.Weight)
+            print('--------------------')
     def predict(self, new_X):
         new_phi = np.zeros(self.M)
         predict = np.zeros(self.K)
