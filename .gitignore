@@ -4,5 +4,6 @@ v-rep_model/
 *.pyc
 .gitignore
 tools/*.pyc
-model/
+GP_model/
+GMM_model/
 model/*.pickle

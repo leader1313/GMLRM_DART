@@ -15,9 +15,10 @@ class GMLRM:
         self.M = M
         self.T = T
         self.Phi = np.zeros((self.N,self.M))
-        self.phi_sigma = np.diag((np.zeros(self.D)+0.05))
-        self.X_Max = np.array([-0.41,0.22,-0.31,0.22])
-        self.X_Min = np.array([-1.1,-0.42,-1.1,-0.42])
+        self.sigma = np.array([0.1,0.1,0.1,0.01])
+        self.phi_sigma = np.diag(self.sigma)
+        self.X_Max = np.array([-0.1,0.3,-0.1,0.3])
+        self.X_Min = np.array([-1.3,-0.45,-1.3,-0.5])
 
         self.range = np.zeros(self.D)
         self.biasRange()
@@ -112,8 +113,7 @@ class GMLRM:
         for t in range(self.T):
             self.expectation()
             self.maximization()
-            print(self.Weight)
-            print('--------------------')
+
     def predict(self, new_X):
         new_phi = np.zeros(self.M)
         predict = np.zeros(self.K)
