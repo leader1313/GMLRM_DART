@@ -27,7 +27,6 @@ with open(GP_filename_y, 'rb') as f:
 
 
 
-
 def shutdown():
     print ('ros shutdown')
     

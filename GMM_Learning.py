@@ -4,6 +4,7 @@ from tools.Data_save import Save
 from tools.GMLRM import GMLRM
 import sys,subprocess
 import pandas as pd
+import numpy as np
 import pickle
 
 save = Save('data/')
@@ -29,10 +30,9 @@ def main():
     X = state
     Y1 = action_x
     Y2 = action_y
-    
-    T = 1000
+    T = 300
     K = 1                                       # solution 수
-    M = 30                                    # Number of model
+    M = 2                                    # Number of model
     GM1 = GMLRM(X,Y1,K,M,T)
     GM2 = GMLRM(X,Y2,K,M,T)
     GM1.EM()

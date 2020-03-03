@@ -1,8 +1,9 @@
 #-*- coding:utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.linalg import inv, det
-from scipy.linalg import pinv
+from numpy.linalg import inv, det, pinv
+import sys
+
 
 class GMLRM:
     def __init__(self, X, Y, K, M, T):
@@ -13,12 +14,13 @@ class GMLRM:
         self.N = X.shape[0]
         self.K = K
         self.M = M
+        self.Num_Model = (self.M)**(self.D)
         self.T = T
-        self.Phi = np.zeros((self.N,self.M))
-        self.sigma = np.array([0.1,0.1,0.1,0.01])
+        self.Phi = np.zeros((self.N,self.Num_Model))
+        self.sigma = np.array([1,1,1,1])
         self.phi_sigma = np.diag(self.sigma)
-        self.X_Max = np.array([-0.1,0.3,-0.1,0.3])
-        self.X_Min = np.array([-1.3,-0.45,-1.3,-0.5])
+        self.X_Max = np.array([0.5,0.16,0.46,0.16])
+        self.X_Min = np.array([-1,-0.5,-1,-0.5])
 
         self.range = np.zeros(self.D)
         self.biasRange()
@@ -26,7 +28,7 @@ class GMLRM:
         
         #Variable
         self.prior = np.random.rand(self.K)                   # 어느 클래스에 속할 확률 vector
-        self.Weight = np.random.rand(self.M,self.K)           # mean vector
+        self.Weight = np.random.rand(self.Num_Model,self.K)   # mean vector
         self.var = np.zeros(1)+1                              # variance
         self.r = np.zeros((self.N,K))                              # responsibility
         self.R = np.zeros((K,self.N,self.N))
@@ -56,19 +58,32 @@ class GMLRM:
         return B
     #phi : bias
     def cal_phi(self, X, m):
-        mean = self.X_Min + m*self.range
+        x = (np.zeros(self.D)+1)
+        x = self.Base_10_to_n(x, m, 0)
+        mean = self.X_Min + np.dot(self.range,np.diag(x))
         sigma = self.phi_sigma
         phi = self.Gaussian_bias(X, mean, sigma)
         return phi
+
+    def Base_10_to_n(self, X ,n, i):
+        if (int((n)/(self.M))):
+            X[i] = (n)%(self.M)+1
+            self.Base_10_to_n(X,int((n)/(self.M)), i+1)
+        else : X[i] = (n)%(self.M)+1
+        return X
 
     #=============== Update method =================
     def biasRange(self):
         self.range = (self.X_Max-self.X_Min)/(self.M + 1)
         
     def Init_phi(self):
-        for m in range(self.M):
+        for m in range(self.Num_Model):
             for n in range(self.N):
-                self.Phi[n,m] = self.cal_phi(self.X[n], m)
+                self.Phi[n,m]=self.cal_phi(self.X[n],m)
+            
+            
+            
+            
 
     def responsibility(self, n, k):
         t = self.Y[n]
@@ -115,10 +130,10 @@ class GMLRM:
             self.maximization()
 
     def predict(self, new_X):
-        new_phi = np.zeros(self.M)
+        new_phi = np.zeros(self.Num_Model)
         predict = np.zeros(self.K)
         X = new_X
-        for m in range(self.M):
+        for m in range(self.Num_Model):
             new_phi[m] = self.cal_phi(X,m)
         for k in range(self.K):
             predict[k] = np.dot(self.Weight[:,k].T,new_phi)
