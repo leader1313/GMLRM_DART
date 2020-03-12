@@ -28,8 +28,8 @@ class Publisher(object):
         rospy.sleep(0.2)
         self.sim_start()
         rospy.sleep(0.5)
-        self.reset_goal1_pub.publish(self.random_goal_pose())
-        self.reset_goal2_pub.publish(self.random_goal_pose())
+        # self.reset_goal1_pub.publish(self.random_goal_pose(-0.2248))
+        # self.reset_goal2_pub.publish(self.random_goal_pose(0.0252))
 
     def sim_start(self):
         self.start_pub.publish(True)
@@ -43,21 +43,19 @@ class Publisher(object):
         self.pause_pub.publish(True)
         print('pause simulation...')
 
-    def random_goal_pose(self):
-        x, y = self.random_pose()
+    def random_goal_pose(self,center):
+        max_X_length = 0.005
+        max_Y_length = 0.005
+        center_x = -0.7074
+        center_y = center
+        x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
+        y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)
+        
         self.goal_pose.x = x
         self.goal_pose.y = y
         self.goal_pose.z = self.init_target.z
         return self.goal_pose
         
-    def random_pose(self):
-        max_X_length = 0.5
-        max_Y_length = 0.5
-        center_x = -0.7074
-        center_y = -0.0998
-        x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
-        y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)
-        return x, y
         
     def joyInput(self):
         self.game_pad.Update()

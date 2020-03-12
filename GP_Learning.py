@@ -13,7 +13,7 @@ load = Load('data/')
 
 command = ("ls data/action | grep")
 Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
-Num_goal = 1
+Num_goal = 2
 
 def main():
     state,action = save.initDataframe(Num_goal)

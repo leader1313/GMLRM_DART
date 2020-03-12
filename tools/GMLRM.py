@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import inv, det, pinv
-import sys
+import sys,random
 
 
 class GMLRM:
@@ -11,25 +11,32 @@ class GMLRM:
         self.X = X
         self.Y = Y
         self.D = X.shape[1]
+        self.O = Y.shape[1]
         self.N = X.shape[0]
         self.K = K
         self.M = M
         self.Num_Model = (self.M)**(self.D)
         self.T = T
         self.Phi = np.zeros((self.N,self.Num_Model))
-        self.sigma = np.array([1,1,1,1])
+        self.X_Max = np.array([-0.35, -0.35, 0.24, 0.24, -0.35, 0.24])
+        self.X_Min = np.array([-1.1, -1.1, -0.42, -0.42, -1.1, -0.42])
+        self.sigma = np.array([1,1,1,1,1,1])
+        # self.sigma = np.array([0.5,0.5,0.5,0.5,1,1])
+        # self.X_Max = np.array([-0.4, 0.2, -0.4, 0.2])
+        # self.X_Min = np.array([-1.1, -0.5, -1.1, -0.5])
+        # self.sigma = np.array([1,1,1,1])
         self.phi_sigma = np.diag(self.sigma)
-        self.X_Max = np.array([0.5,0.16,0.46,0.16])
-        self.X_Min = np.array([-1,-0.5,-1,-0.5])
 
         self.range = np.zeros(self.D)
         self.biasRange()
         self.Init_phi()
         
         #Variable
-        self.prior = np.random.rand(self.K)                   # 어느 클래스에 속할 확률 vector
-        self.Weight = np.random.rand(self.Num_Model,self.K)   # mean vector
-        self.var = np.zeros(1)+1                              # variance
+        self.prior = np.zeros(self.K)+(1/self.K)                   # 어느 클래스에 속할 확률 vector
+        self.Wvar = np.sqrt(1/(self.K*self.Num_Model*self.O))
+        # self.Weight = self.Wvar*np.random.randn(self.K,self.Num_Model,self.O)   # mean vector
+        self.Weight = np.random.uniform(-self.Wvar,self.Wvar,size=(self.K,self.Num_Model,self.O))
+        self.var = np.diag(np.zeros(self.O)+1)                              # variance
         self.r = np.zeros((self.N,K))                              # responsibility
         self.R = np.zeros((K,self.N,self.N))
 
@@ -44,9 +51,10 @@ class GMLRM:
         y = (1/(((2*np.pi)*(var)**(1/2)))) * E
         return y
 
-    def Gaussian_Distribution(self,x, D, mean, sigma):
-        E = np.exp((-1/2)*self.dot((x-mean).T,(inv(sigma)),(x-mean)))
-        y = (1/((2*np.pi)**(D/2)))*(1/((det(sigma))**(1/2)))*E        
+    def Gaussian_Distribution(self,x, D, mean, cov):
+        x_m = (x-mean)
+        E = np.exp((-1/2)*self.dot((x_m).T,(inv(cov)),(x_m)))
+        y = 1. / (np.sqrt((2 * np.pi)**D * det(cov))) *E                    
         return y
 
     def uni_Gaussian_bias(self,x, mean, sigma):
@@ -80,23 +88,18 @@ class GMLRM:
         for m in range(self.Num_Model):
             for n in range(self.N):
                 self.Phi[n,m]=self.cal_phi(self.X[n],m)
-            
-            
-            
-            
 
     def responsibility(self, n, k):
-        t = self.Y[n]
+        t = self.Y[n][...,None]
         p = self.prior
-        wk_bn = np.dot(self.Weight[:,k].T,self.Phi[n])
-        
+        wk_bn = np.dot(self.Weight[k].T,self.Phi[n])[...,None]
         sum_r = np.zeros(1)[...,None]
-        r_k = p[k]*self.uni_Gaussian_Distribution(t, wk_bn, self.var)[...,None]
+        r_k = p[k]*self.Gaussian_Distribution(t ,self.O , wk_bn, self.var)
         for j in range(self.K):
-            wj_bn = np.dot(self.Weight[:,j].T, self.Phi[n])
-            r1 = p[j]*self.uni_Gaussian_Distribution(t, wj_bn, self.var)
+            wj_bn = np.dot(self.Weight[j].T, self.Phi[n])[...,None]
+            r1 = p[j]*self.Gaussian_Distribution(t,self.O, wj_bn, self.var)
             sum_r += r1
-
+            
         return r_k/sum_r
 
     def expectation(self): 
@@ -104,39 +107,43 @@ class GMLRM:
             for k in range(self.K):
                 self.r[n,k] = self.responsibility(n, k)
                 self.R[k,n,n] = self.r[n,k]
+        
 
     def maximization(self):
         sum_r = np.zeros(self.K)
-        sum_rd = np.zeros(1)
+        sum_rd = np.diag(np.zeros(self.O))
         for k in range(self.K):
             for n in range(self.N):
                 re = self.r[n,k]
                 sum_r[k] += re
-            self.prior[k] = sum_r[k]/self.N            
+            self.prior[k] = sum_r[k]/self.N        
             invPRP = pinv(self.dot(self.Phi.T,self.R[k],self.Phi))
             PtRy = self.dot(self.Phi.T,self.R[k],self.Y)
             
-            self.Weight[:,k][:,None] = np.dot(invPRP, PtRy)
+            self.Weight[k] = np.dot(invPRP, PtRy)
             for n in range(self.N):
                 re = self.r[n,k]
-                d = (self.Y[n]-np.dot(self.Weight[:,k].T, self.Phi[n]))**2
-
-                sum_rd += re * d
-        self.var = sum_rd/self.N
+                d = (self.Y[n]-np.dot(self.Weight[k].T, self.Phi[n]))[None,...]
+                D = np.dot(d.T,d)
+                D = re * D
+                sum_rd += D
+        var = np.diag(sum_rd/self.N)
+        self.var = np.diag(var)
+        print(self.prior)
 
     def EM(self):
         for t in range(self.T):
             self.expectation()
-            self.maximization()
+            self.maximization()            
 
     def predict(self, new_X):
         new_phi = np.zeros(self.Num_Model)
-        predict = np.zeros(self.K)
+        predict = np.zeros((self.K,self.O))
         X = new_X
         for m in range(self.Num_Model):
             new_phi[m] = self.cal_phi(X,m)
         for k in range(self.K):
-            predict[k] = np.dot(self.Weight[:,k].T,new_phi)
+            predict[k] = np.dot(self.Weight[k].T,new_phi)
         return predict
     
 

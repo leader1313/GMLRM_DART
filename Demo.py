@@ -9,8 +9,9 @@ save = Save('data/')
 Sub = Subscriber()
 Pub = Publisher()
 fail = Fail()
-Sup = Supervisor(0)
-Num_goal = 1
+Sup_x = Supervisor(0.000004)
+Sup_y = Supervisor(0.000014)
+Num_goal = 2
 
 def initialize():
     global state, action
@@ -23,7 +24,7 @@ def shutdown():
 
 def main():
     global state, action
-    dataNumber = 0
+    dataNumber = 17
     sampling_flag = False
     save_flag = False
     fail_flag = False
@@ -34,7 +35,6 @@ def main():
     rate = rospy.Rate(10)
     
     while True:
-        
         axes, buttons = Pub.joyInput()
         s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
         a = axes
@@ -50,16 +50,18 @@ def main():
             initialize()
             sampling_flag = False
         
-        if Sub.success == True :
-            save_flag = True
-            
-        
         if sampling_flag :
             state = save.dataAppend(state,temp_state)
             action = save.dataAppend(action,temp_action)
-            Pub.actionInput(Sup.sample_action(axes))
+            action1 = Sup_y.sample_action(axes[0])
+            action2 = Sup_x.sample_action(axes[1])
+            sample_action = [action1,action2]
+            Pub.actionInput(sample_action)
+            if Sub.success == True :
+                save_flag = True
 
         if save_flag :
+            print(Sub.success)
             Pub.sim_stop()
             save.dataSave(state,action,dataNumber)
             dataNumber += 1

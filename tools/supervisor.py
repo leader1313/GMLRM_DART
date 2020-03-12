@@ -1,14 +1,15 @@
 import numpy as np
-import torch
+import torch, math
 
 
 class Supervisor():
     def __init__(self, cov):
         self.cov = cov
+        self.sigma = math.sqrt(cov)
 
     def sample_action(self,action):
         in_a = action
-        sampled_action = np.random.normal(0,self.cov,2) + in_a
+        sampled_action = np.random.normal(0,self.sigma,1) + in_a
         return sampled_action
 
     def intended_action(self, action):
