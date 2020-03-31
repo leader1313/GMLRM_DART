@@ -2,15 +2,22 @@ from geometry_msgs.msg import Point
 
 
 class Fail(object):
-    def __init__(self):
+    def __init__(self,state):
         self.fail_flag = False
         self.timeLimit = 20.0
         self.X_Limit = [-0.1,-1.2] #[max , min]
-        self.Y_Limit = [-0.5, 0.3]
+        self.Y_Limit = [0.3, -0.5]
+        self.Z_Limit = [0.35,0.31]
+        
+        self.goal1 = state[0]
+        self.goal2 = state[1]
+        self.target = state[2]
 
     def inside_Range(self,target_pose):
         fail_flag = False
-        if (target_pose.x > self.X_Limit[0]) or (target_pose.x < self.X_Limit[1]) or (target_pose.y < self.Y_Limit[0]) or (target_pose.y > self.Y_Limit[1]) :
+        if (target_pose.x > self.X_Limit[0]) or (target_pose.x < self.X_Limit[1]) or (target_pose.y > self.Y_Limit[0]) or (target_pose.y < self.Y_Limit[1]) :
+            fail_flag = True
+        elif (target_pose.z > self.Z_Limit[0]) or (target_pose.z < self.Z_Limit[1]):
             fail_flag = True
         return fail_flag
 
@@ -22,8 +29,10 @@ class Fail(object):
 
         return fail_flag
 
-    def fail_check(self, target_pose, simulationTime):
-        if self.inside_Range(target_pose) or self.time_condition(simulationTime) :
+    def fail_check(self, simulationTime):
+        if self.inside_Range(self.target) or self.time_condition(simulationTime) :
+            self.fail_flag = True
+        elif self.inside_Range(self.goal1) or self.inside_Range(self.goal2):
             self.fail_flag = True
         else: self.fail_flag = False
         return self.fail_flag

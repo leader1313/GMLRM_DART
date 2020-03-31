@@ -1,6 +1,6 @@
-from tools.Data_Subscriber import Subscriber
-from tools.Data_Publisher import Publisher
-from tools.Data_save import Save
+from tools.Data.Subscriber import Subscriber
+from tools.Data.Publisher import Publisher
+from tools.Data.Save import Save
 from tools.Fail_condition import Fail
 from tools.supervisor import Supervisor
 import rospy
@@ -8,9 +8,9 @@ import rospy
 save = Save('data/')
 Sub = Subscriber()
 Pub = Publisher()
-fail = Fail()
-Sup_x = Supervisor(0.000004)
-Sup_y = Supervisor(0.000014)
+
+Sup_x = Supervisor(0.0)
+Sup_y = Supervisor(0.0000)
 Num_goal = 2
 
 def initialize():
@@ -24,7 +24,7 @@ def shutdown():
 
 def main():
     global state, action
-    dataNumber = 17
+    dataNumber = 1
     sampling_flag = False
     save_flag = False
     fail_flag = False
