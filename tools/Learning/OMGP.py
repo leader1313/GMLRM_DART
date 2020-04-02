@@ -64,7 +64,7 @@ class OMGP:
 
     mean = Knx.permute(0,2,1).bmm(sqrtB).bmm(torch.solve(sqrtB, R)[0]).bmm(self.Y.repeat(self.M,1,1))
     sigma = torch.stack([torch.diag(Kx[m] - Knx[m].t().mm(sqrtB[m]).mm(torch.solve(sqrtB[m], R[m])[0]).mm(Knx[m]))+sigma for m in range(self.M)])
-  
+    sigma[sigma<0.00001]=0.00001
     return mean, sigma
 
   def compute_grad(self, flag):
@@ -118,7 +118,7 @@ class OMGP:
       lk_z = 0.5*(self.q_z_pi*torch.log(np.pi*2*sigma)).sum()
 
 
-    return lk_y + lk_z
+    return (lk_y + lk_z)
 
 
   def learning(self, N=3):
@@ -131,7 +131,7 @@ class OMGP:
 
       print(i,' : ',self.negative_log_likelihood())
       self.negative_log_likelihood()
-    self.Noise = np.repeat(np.exp(self.log_p_y_sigma)**2,self.D)
+    self.Noise = np.exp(self.log_p_y_sigma.numpy())
     
 
 
@@ -158,42 +158,42 @@ class OMGP:
     self.compute_grad(False)
     
 
-# if __name__=="__main__":
-#   import sys
-#   from kernel import GaussianKernel
-#   import matplotlib.pyplot as plt
-#   plt.style.use("ggplot")
+if __name__=="__main__":
+  import sys
+  from kernel import GaussianKernel
+  import matplotlib.pyplot as plt
+  plt.style.use("ggplot")
 
-#   N = 100
-#   X = np.linspace(0, np.pi*2, N)[:,None]
-#   Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.1
-#   Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.1
+  N = 500
+  X = np.linspace(0, np.pi*2, N)[:,None]
+  Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.1
+  Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.1
 
-#   X = torch.from_numpy(X).float()
-#   Y1 = torch.from_numpy(Y1).float()
-#   Y2 = torch.from_numpy(Y2).float()
+  X = torch.from_numpy(X).float()
+  Y1 = torch.from_numpy(Y1).float()
+  Y2 = torch.from_numpy(Y2).float()
 
-#   kern = GaussianKernel()
-#   model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 2, GaussianKernel)
+  kern = GaussianKernel()
+  model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 2,10, GaussianKernel)
 
-#   model.learning()
+  model.learning()
 
-#   xx = np.linspace(0, np.pi*2, 100)[:,None]
-#   xx = torch.from_numpy(xx).float()
-#   mm, ss = model.predict(xx)
+  xx = np.linspace(0, np.pi*2, 100)[:,None]
+  xx = torch.from_numpy(xx).float()
+  mm, ss = model.predict(xx)
 
-#   mm = mm.numpy()
-#   ss = np.sqrt(ss.numpy())
-#   xx = xx.numpy().ravel()
+  mm = mm.numpy()
+  ss = np.sqrt(ss.numpy())
+  xx = xx.numpy().ravel()
 
-#   plt.scatter(X, Y1)
-#   plt.scatter(X, Y2)
-#   line = plt.plot(xx, mm[0])
-#   plt.plot(xx, mm[0,:,0]+ss[0], "--", color=line[0].get_color())
-#   plt.plot(xx, mm[0,:,0]-ss[0], "--", color=line[0].get_color())
+  plt.scatter(X, Y1)
+  plt.scatter(X, Y2)
+  line = plt.plot(xx, mm[0])
+  plt.plot(xx, mm[0,:,0]+ss[0], "--", color=line[0].get_color())
+  plt.plot(xx, mm[0,:,0]-ss[0], "--", color=line[0].get_color())
 
-#   line = plt.plot(xx, mm[1])
-#   plt.plot(xx, mm[1,:,0]+ss[1], "--", color=line[0].get_color())
-#   plt.plot(xx, mm[1,:,0]-ss[1], "--", color=line[0].get_color())
-#   plt.show()
+  line = plt.plot(xx, mm[1])
+  plt.plot(xx, mm[1,:,0]+ss[1], "--", color=line[0].get_color())
+  plt.plot(xx, mm[1,:,0]-ss[1], "--", color=line[0].get_color())
+  plt.show()
 

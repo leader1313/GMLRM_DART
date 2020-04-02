@@ -34,9 +34,9 @@ def shutdown():
     
 def main():
     global state, action
-    dataNumber = 13
-    Max_trajectory = 50
-    noise = [0.0,0.0]
+    dataNumber = 1
+    Max_trajectory = 15
+    noise = [0.000006,0.000006]
     sampling_flag = False
     save_flag = False
     fail_flag = False
@@ -65,6 +65,7 @@ def main():
             fail = Fail(s)
             
             a_x, a_y = robot.policy(s,k)
+            
             axes = [a_y, a_x]
             a = axes
             temp_state, temp_action = save.tempDataframe(s, a, Num_goal)
@@ -92,16 +93,18 @@ def main():
                 action2 = Sup_x.sample_action(axes[1])
                 sample_action = [action1,action2]
                 Pub.actionInput(sample_action)
-                if Sub.success == True :
+                if Sub.simulationTime >1.0 :
+                    fail.simple_success()
+                
+                if (Sub.success == True) or (fail.success==True) :
                     save_flag = True
-
             if save_flag :
-                print(Sub.success)
                 Pub.sim_stop()
                 save.dataSave(state,action,dataNumber)
                 save_flag = False
                 sampling_flag = False
                 Sub.success = False
+                fail.success = False
                 button = True
                 if (dataNumber)%2==0 :
                     dataNumber += 1
@@ -110,36 +113,44 @@ def main():
             
             rate.sleep()
         
-        initialize()
-        Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
-        for i in range(Num_data):
-            _state, _action = load.dataLoad(i+1)
-            state = save.dataAppend(state,_state)
-            action = save.dataAppend(action,_action)
-        N = state.shape[0]
         
-        X = state
-        Y = action
 
-        # OMGP = Learning('OMGP',20,X,Y)
-        # OMGP.learning()
-        GMLRM = Learning('GMLRM',100,X,Y)
-        GMLRM.learning()
+        # model1 = Learning('OMGP',5,X,Y1)
+        # model2 = Learning('OMGP',5,X,Y2)
+        # model1.learning(int((dataNumber)/2))
+        # model2.learning(int(dataNumber-1))
+        if ((dataNumber-1) % 10 ==0) :
+            initialize()
+            Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
+            for i in range(Num_data):
+                _state, _action = load.dataLoad(i+1)
+                state = save.dataAppend(state,_state)
+                action = save.dataAppend(action,_action)
+            N = state.shape[0]
+            
+            X = state
+            Y = action
+            Y1 = Y['v_x1']
+            Y2 = Y['v_y1']
+            model = Learning('OMGP',20,X,Y)
+            model.learning(int((dataNumber-1)/2))
+            # GMLRM = Learning('GMLRM',100,X,Y)
+            # GMLRM.learning()
 
 
-        # noise = [model.model.Noise,model.model.Noise]
-        noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
-        result['noise_x'].append(noise[0])
-        result['noise_y'].append(noise[1])
-        result['model_Num'].append(i+1)
-        df = pd.DataFrame(result)
-        df.to_excel('data/noise/noise.xlsx')
-
-        print("="*40)
-        print("Optimized Noise x: %f, Noise y: %f" %(noise[0],noise[1]))
-        print(" \t model saved" )
-        print(" \t Number of step %i " %(N))
-        print("="*40)
+            # noise = [model.model.Noise,model.model.Noise]
+            # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
+            result['noise_x'].append(noise[0])
+            result['noise_y'].append(noise[1])
+            result['model_Num'].append(i+1)
+            df = pd.DataFrame(result)
+            df.to_excel('data/noise/noise.xlsx')
+            
+            print("="*40)
+            print("Optimized Noise x: %f, Noise y: %f" %(noise[0],noise[1]))
+            print(" \t model saved" )
+            print(" \t Number of step %i " %(N))
+            print("="*40)
 
     
     rospy.spin()

@@ -6,11 +6,16 @@ class Save(object):
         self.file_path = file_path
 
     def initDataframe(self, Num_goal):
+        
         if Num_goal == 1 : 
             self.init_state = DataFrame(columns =['goal_x1','goal_y1','x_e','y_e'])
         elif Num_goal == 2 : 
             self.init_state = DataFrame(columns =['goal_x1','goal_y1','goal_x2','goal_y2','x_e','y_e'])
         self.init_action = DataFrame(columns =['v_x1','v_y1'])
+
+        if Num_goal == 0 : 
+            self.init_state = DataFrame(columns =['goal_y1','goal_y2','y_e'])
+            self.init_action = DataFrame(columns =['v_y1'])
 
         return self.init_state, self.init_action
 
@@ -28,6 +33,13 @@ class Save(object):
                 })
         self.temp_action = DataFrame({"v_x1":[action[1]],"v_y1":[action[0]]})
 
+        if Num_goal == 0 : 
+            self.temp_state = DataFrame({
+                "goal_y1":[state[0].y],"goal_y2":[state[1].y],
+                "y_e":[state[2].y]
+                })
+            self.temp_action = DataFrame({"v_y1":[action[0]]})
+
         return self.temp_state, self.temp_action
 
     def dataAppend(self, dataframe, temp_data):
@@ -36,6 +48,9 @@ class Save(object):
 
     
     def dataSave(self, state, action, dataNumber):
+        state = state.drop([0],axis=0)
+        action = action.drop([0],axis=0)
+    
         state.to_excel(self.file_path 
                 + 'state/state'+ str(dataNumber) 
                 + '.xlsx', sheet_name = 'new_sheet_name')

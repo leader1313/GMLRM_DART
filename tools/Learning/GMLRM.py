@@ -19,13 +19,22 @@ class GMLRM:
         self.Num_Model = (self.M)**(self.D)
         self.T = T
         self.Phi = np.zeros((self.N,self.Num_Model))
-        self.X_Max = np.array([-0.35, -0.35, 0.24, 0.24, -0.35, 0.24])
-        self.X_Min = np.array([-1.1, -1.1, -0.42, -0.42, -1.1, -0.42])
-        self.sigma = np.array([1,1,1,1,1,1])
-        # self.sigma = np.array([0.5,0.5,0.5,0.5,1,1])
+        #============example============
+        # self.X_Max = np.array([2*np.pi])
+        # self.X_Min = np.array([-np.pi])
+        # self.sigma = np.array([1])
+        #==========6D=============
+        # self.X_Max = np.array([-0.35, -0.35, 0.24, 0.24, -0.35, 0.24])
+        # self.X_Min = np.array([-1.1, -1.1, -0.42, -0.42, -1.1, -0.42])
+        # self.sigma = np.array([1,1,1,1,1,1])
+        #==========4D=============
         # self.X_Max = np.array([-0.4, 0.2, -0.4, 0.2])
         # self.X_Min = np.array([-1.1, -0.5, -1.1, -0.5])
         # self.sigma = np.array([1,1,1,1])
+        #==========3D=============
+        self.X_Max = np.array([0.2, 0.2, 0.2])
+        self.X_Min = np.array([-0.5, -0.5, -0.5])
+        self.sigma = np.array([1,1,1])
         self.phi_sigma = np.diag(self.sigma)
 
         self.range = np.zeros(self.D)
@@ -62,8 +71,8 @@ class GMLRM:
         B = np.exp((-1/(2*((sigma)**2)))*((x-mean)**2))
         return B
 
-    def Gaussian_bias(self,x, mean, sigma):
-        B = np.exp((-1/2)*self.dot((x-mean).T,(inv(sigma)),(x-mean)))
+    def Gaussian_bias(self,x, mean, cov):
+        B = np.exp((-1/2)*self.dot((x-mean).T,(inv(cov)),(x-mean)))
         return B
     #phi : bias
     def cal_phi(self, X, m):
@@ -136,7 +145,6 @@ class GMLRM:
         var = np.diag(sum_rd/self.N)
         self.var = np.diag(var)
         
-
     def learning(self):
         for t in range(self.T):
             print(self.prior)
@@ -161,18 +169,28 @@ class GMLRM:
 # #=========================sample data 정의================================
 
 # N = 100
-# n = int(N/2)
-# X1 = np.linspace(0, np.pi*2, n)[:,None]
+# n = int(N/4)
+# X3 = np.linspace(-np.pi,0, n)[:,None]
+# X4 = np.linspace(np.pi,2*np.pi, n)[:,None]
+# Y3 =  np.random.randn(n)[:,None] * 0.1
+# Y4 =  np.random.randn(n)[:,None] * 0.1
+# X1 = np.linspace(0, np.pi, n)[:,None]
 # Y1 = np.sin(X1) + np.random.randn(n)[:,None] * 0.1
-# X2 = np.linspace(0, np.pi*2, n)[:,None]
-# Y2 = np.cos(X2) + np.random.randn(n)[:,None] * 0.1
+# X2 = np.linspace(0, np.pi, n)[:,None]
+# Y2 = -np.sin(X2) + np.random.randn(n)[:,None] * 0.1
 
-# X = np.append(X1,X2, axis = 0)
-# Y = np.append(Y1,Y2, axis = 0)
+# x1 = np.append(X1,X2, axis = 0)
+# x2 = np.append(X3,X4, axis = 0)
+# y1 = np.append(Y1,Y2, axis = 0)
+# y2 = np.append(Y3,Y4, axis = 0)
+# X = np.append(x1,x2, axis = 0)
+# X = np.append(x1,x2, axis = 0)
+# Y = np.append(y1,y2, axis = 0)
 
 # # True
 # true_y1 = np.sin(X1)
-# true_y2 = np.cos(X2)
+# true_y2 = -np.sin(X2)
+
 
 
 
@@ -186,18 +204,15 @@ class GMLRM:
 # test_num = 100
 # predict1 = np.zeros(test_num)[:,None]
 # predict2 = np.zeros(test_num)[:,None]
-# test_x = np.linspace(0, np.pi *2, test_num)[:, None]
-# Pi = np.zeros((test_num,M))
-# for m in range(M):
-#     for n in range(test_num):
-#         Pi[n,m] = GM.Gaussian_bias(test_x[n],m*GM.phi_mean,GM.phi_sigma)
-# Weight ,var = GM.EM() 
+# test_x = np.linspace(-np.pi, 2*np.pi, test_num)[:, None]
+
+# GM.learning()
 # for n in range(test_num):
 #     predict = np.zeros(K)
-#     predict = GM.predict(test_x[n],Weight)
+#     predict = GM.predict(test_x[n])
 #     predict1[n] = predict[0]
 #     predict2[n] = predict[1]
-# ss = np.sqrt(var)
+# ss = np.sqrt(GM.var)
 
 
 # plt.figure()

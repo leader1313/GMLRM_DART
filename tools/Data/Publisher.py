@@ -30,9 +30,10 @@ class Publisher(object):
         rospy.sleep(0.2)
         self.sim_start()
         rospy.sleep(0.5)
-        # self.reset_goal1_pub.publish(self.random_goal_pose())
-        # self.reset_goal2_pub.publish(self.random_goal_pose())
+        self.reset_goal1_pub.publish(self.random_goal_pose(-0.81,-0.2))
+        self.reset_goal2_pub.publish(self.random_goal_pose(-0.81,0.0))
         print('reset')
+        rospy.sleep(0.5)
 
     def sim_start(self):
         self.start_pub.publish(True)
@@ -46,11 +47,13 @@ class Publisher(object):
         self.pause_pub.publish(True)
         print('pause simulation...')
 
-    def random_goal_pose(self):
-        max_X_length = 0.5
-        max_Y_length = 0.5
-        center_x = -0.7074
-        center_y = -0.0998
+    def random_goal_pose(self,x,y):
+        max_X_length = 0.3
+        max_Y_length = 0.1
+        # center_x = -0.7074
+        # center_y = -0.0998
+        center_x = x
+        center_y = y
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
         y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)
         
@@ -60,6 +63,22 @@ class Publisher(object):
         return self.goal_pose
         
         
+    # def keyInput(self):
+    #     if keyboard.is_pressed('right arrow'):
+    #         self.axes[0] = 0.1
+    #     elif keyboard.is_pressed('left arrow'):
+    #         self.axes[0] = -0.1
+    #     if keyboard.is_pressed('up arrow'):
+    #         self.axes[1] = 0.1
+    #     elif keyboard.is_pressed('down arrow'):
+    #         self.axes[1] = -0.1
+        
+    #     if keyboard.is_pressed('s'):
+    #         self.buttons[1] = True
+    #     if keyboard.is_pressed('a'):
+    #         self.buttons[2] = True
+    #     return self.axes, self.buttons
+
     def joyInput(self):
         self.game_pad.Update()
         self.axes = self.game_pad.axes_[:2]

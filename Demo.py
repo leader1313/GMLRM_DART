@@ -35,7 +35,8 @@ def main():
     rate = rospy.Rate(10)
     
     while True:
-        axes, buttons = Pub.joyInput()
+        # axes, buttons = Pub.joyInput()
+        axes, buttons = Pub.keyInput()
         s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
         a = axes
         temp_state, temp_action = save.tempDataframe(s, a, Num_goal)

@@ -4,6 +4,7 @@ from geometry_msgs.msg import Point
 class Fail(object):
     def __init__(self,state):
         self.fail_flag = False
+        self.success = False
         self.timeLimit = 20.0
         self.X_Limit = [-0.1,-1.2] #[max , min]
         self.Y_Limit = [0.3, -0.5]
@@ -20,6 +21,14 @@ class Fail(object):
         elif (target_pose.z > self.Z_Limit[0]) or (target_pose.z < self.Z_Limit[1]):
             fail_flag = True
         return fail_flag
+
+    def simple_success(self):
+        
+        if (self.goal1.z < self.Z_Limit[1])and(self.goal1.z > 0.25):
+            self.success = True
+        elif (self.goal2.z < self.Z_Limit[1])and(self.goal2.z > 0.25):
+            self.success = True
+        else : self.success =False
 
     def time_condition(self,simulationTime):
         fail_flag = False
