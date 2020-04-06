@@ -5,7 +5,7 @@ from tools.Fail_condition import Fail
 import pickle
 import rospy, torch
 import numpy as np
-from sklearn.externals import joblib
+import joblib
 
 
 Sub = Subscriber()
@@ -15,10 +15,12 @@ Pub = Publisher()
 GMLRM_filename = 'GMLRM_model/learner.pickle'
 # OMGP_filename1 = 'OMGP_model/learner11x.pickle'
 # OMGP_filename2 = 'OMGP_model/learner11y.pickle'
-OMGP_filename = 'OMGP_model/learner5.pickle'
+OMGP_filename = 'OMGP_model/DART/learner30.pickle'
+IMGP_filename = 'IMGP_model/learner30.pickle'
 
 GMM = joblib.load(GMLRM_filename)
 OMGP = joblib.load(OMGP_filename)
+IMGP = joblib.load(IMGP_filename)
 # OMGPx = joblib.load(OMGP_filename1)
 # OMGPy = joblib.load(OMGP_filename2)
 
@@ -38,6 +40,8 @@ def main():
     k=0
     temp_ss = 0
     t=0
+    n_regressors = len(IMGP)
+    print(n_regressors)
     while True:
         
         axes, buttons = Pub.joyInput()
@@ -59,13 +63,12 @@ def main():
 
         # a_x = mm_action[0][0][0]
         # a_y = mm_action[0][0][1]
-        a_x = mm_action[k][0][0]
-        a_y = mm_action[k][0][1]
+        # a_x = mm_action[k][0][0]
+        # a_y = mm_action[k][0][1]
         # a_x = mm_actionx[k][0]
         # a_y = mm_actiony[k][0]
-        if abs(a_y) >1.0 :
-            a_y /= abs(a_y)
-        OMGP_a = [a_y,a_x]
+        
+        # OMGP_a = [a_y,a_x]
         
         # a_x = 0.0
         # a_y = mm_action[k][0]
@@ -75,17 +78,17 @@ def main():
         # a_y = GMM.predict(s)[k][1]
         # GMM_a = [a_y,a_x]
         
-        # a_x = 0.0
-        # a_y = GMM.predict(s)[k]
-        # GMM_a = [a_y,a_x]
+        [means, vars] = IMGP[k].get_target_predictions(np_temp)
+    
+        a_x = means[0][0]
+        a_y = means[0][1]
+        if abs(a_y) >0.9 :
+            a_y /= abs(a_y)
+            a_y *= 0.9
+        IMGP_a = [a_y,a_x]
         
-
-        if kflag : 
-            k = 0
-            a = OMGP_a
-        else : 
-            k = 1
-            a = OMGP_a
+       
+        a = IMGP_a
 
         if buttons[2] :
             Pub.reset()
@@ -98,7 +101,9 @@ def main():
             sampling_flag = False
         
         elif (buttons[0]) :
-            kflag = not kflag
+            # kflag = not kflag
+            k += 1
+            k %=n_regressors
             print(kflag)
 
         if Sub.success == True :

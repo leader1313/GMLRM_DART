@@ -39,16 +39,7 @@ class Noise:
                 for o in range(self.O):
                     self.a_ler[k,n,o] = self.ler.predict(self.s[n])[k][o]
 
-    def classification(self):
-        for n in range(self.N):
-            d1 = (self.a_ler[0,n]-self.a_sup[n])[...,None]
-            d1 = np.dot(d1.T,d1)
-            d2 = (self.a_ler[1,n]-self.a_sup[n])[...,None]
-            d2 = np.dot(d2.T,d2)
-            if (d1-d2) > 0 :
-                self.k[n] = 1
-            else: self.k[n] = 0
-
+    
     # def Negativell(self):
     #     Nll = 0
     #     E = 0

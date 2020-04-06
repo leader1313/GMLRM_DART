@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 class GPRegression:
-  def __init__(self, X, Y, kernel):
+  def __init__(self, kernel,X,Y):
     self.X = X
     self.Y = Y
     self.kern = kernel

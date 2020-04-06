@@ -7,13 +7,13 @@ class Robot(object):
         [self.E_y,self.IE_y] = np.zeros(2)
 
     def PIDcontrol(self,goal,end,DE,IE):
-        P = 2
-        I = 5
+        P = 5
+        I = 1
         D = 5
         E = goal-end
         DE = E-DE
         
-        if abs(E) > 0.02 :
+        if abs(E) > 0.04 :
             a = (E/abs(E))*1.0
         else :
             IE += E

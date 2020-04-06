@@ -5,7 +5,7 @@ class Fail(object):
     def __init__(self,state):
         self.fail_flag = False
         self.success = False
-        self.timeLimit = 20.0
+        self.timeLimit = 11.0
         self.X_Limit = [-0.1,-1.2] #[max , min]
         self.Y_Limit = [0.3, -0.5]
         self.Z_Limit = [0.35,0.31]
@@ -60,10 +60,8 @@ def main():
     Pub = Publisher()
     fail = Fail()
     while True:
-        print(Sub.target_pose)
         Pub.input()
         fail_flag = fail.fail_check(Sub.target_pose,Sub.simulationTime)
-        print(fail_flag)
         rate.sleep()
     rospy.spin()
 

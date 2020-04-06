@@ -7,7 +7,6 @@ class OMGP:
     self.X = X
     self.Y = Y
 
-    
     self.N = self.X.shape[0]
     self.M = M
     self.D = self.Y.shape[1]
@@ -165,9 +164,9 @@ if __name__=="__main__":
   plt.style.use("ggplot")
 
   N = 500
-  X = np.linspace(0, np.pi*2, N)[:,None]
-  Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.1
-  Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.1
+  X = np.atleast_2d(np.linspace(0, np.pi*2, N))
+  Y1 = np.sin(X) + np.atleast_2d(np.random.randn(N)) * 0.1
+  Y2 = np.cos(X) + np.atleast_2d(np.random.randn(N)) * 0.1
 
   X = torch.from_numpy(X).float()
   Y1 = torch.from_numpy(Y1).float()
@@ -178,7 +177,7 @@ if __name__=="__main__":
 
   model.learning()
 
-  xx = np.linspace(0, np.pi*2, 100)[:,None]
+  xx = np.atleast_2d(np.linspace(0, np.pi*2, 100))
   xx = torch.from_numpy(xx).float()
   mm, ss = model.predict(xx)
 

@@ -35,8 +35,8 @@ def shutdown():
 def main():
     global state, action
     dataNumber = 1
-    Max_trajectory = 15
-    noise = [0.000006,0.000006]
+    Max_trajectory = 30
+    noise = [0.0,0.0]
     sampling_flag = False
     save_flag = False
     fail_flag = False
@@ -113,12 +113,6 @@ def main():
             
             rate.sleep()
         
-        
-
-        # model1 = Learning('OMGP',5,X,Y1)
-        # model2 = Learning('OMGP',5,X,Y2)
-        # model1.learning(int((dataNumber)/2))
-        # model2.learning(int(dataNumber-1))
         if ((dataNumber-1) % 10 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
@@ -132,7 +126,7 @@ def main():
             Y = action
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
-            model = Learning('OMGP',20,X,Y)
+            model = Learning('IMGP',30,X,Y)
             model.learning(int((dataNumber-1)/2))
             # GMLRM = Learning('GMLRM',100,X,Y)
             # GMLRM.learning()

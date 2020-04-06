@@ -2,6 +2,7 @@ import sys
 sys.path.append('/home/hanbit-o/python/GMLRM_DART/tools/')
 from GamePad import *
 import os, time, rospy,random, math
+import numpy as np
 from geometry_msgs.msg import Point
 from std_msgs.msg import Float32MultiArray, Bool
 
@@ -30,8 +31,8 @@ class Publisher(object):
         rospy.sleep(0.2)
         self.sim_start()
         rospy.sleep(0.5)
-        self.reset_goal1_pub.publish(self.random_goal_pose(-0.81,-0.2))
-        self.reset_goal2_pub.publish(self.random_goal_pose(-0.81,0.0))
+        self.reset_goal1_pub.publish(self.random_goal_pose(-0.75,-0.25))
+        self.reset_goal2_pub.publish(self.random_goal_pose(-0.75,0.05))
         print('reset')
         rospy.sleep(0.5)
 
@@ -49,7 +50,7 @@ class Publisher(object):
 
     def random_goal_pose(self,x,y):
         max_X_length = 0.3
-        max_Y_length = 0.1
+        max_Y_length = 0.2
         # center_x = -0.7074
         # center_y = -0.0998
         center_x = x
@@ -86,6 +87,7 @@ class Publisher(object):
         return self.axes, self.buttons
 
     def actionInput(self, action):
+        # action += np.random.normal(0,0.1,1)
         self.game_pad_state.data = list(action)
         self.action_pub.publish(self.game_pad_state)
 

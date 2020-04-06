@@ -5,6 +5,12 @@ v-rep_model/
 *.pyc
 .gitignore
 tools/*.pyc
+OMGP_model
+OMGP_model/
+OMGP_model/*.pickle
+IMGP_model/
+IMGP_model/*.pickle
+neu_ml/
 GP_model/
-GMM_model/
+GMLRM_model/
 model/*.pickle
