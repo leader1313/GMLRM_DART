@@ -34,6 +34,7 @@ def shutdown():
     
 def main():
     global state, action
+    ####### Initialize Parameters
     dataNumber = 1
     Max_trajectory = 30
     noise = [0.0,0.0]
@@ -113,7 +114,7 @@ def main():
             
             rate.sleep()
         
-        if ((dataNumber-1) % 10 ==0) :
+        if ((dataNumber-1) % 2 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
             for i in range(Num_data):
@@ -132,7 +133,7 @@ def main():
             # GMLRM.learning()
 
 
-            # noise = [model.model.Noise,model.model.Noise]
+            noise = [model.model.Noise,model.model.Noise]
             # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
             result['noise_x'].append(noise[0])
             result['noise_y'].append(noise[1])

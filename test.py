@@ -12,14 +12,14 @@ Sub = Subscriber()
 Pub = Publisher()
 
 #########  Load model  #######
-GMLRM_filename = 'GMLRM_model/learner.pickle'
+# GMLRM_filename = 'GMLRM_model/learner.pickle'
 # OMGP_filename1 = 'OMGP_model/learner11x.pickle'
 # OMGP_filename2 = 'OMGP_model/learner11y.pickle'
-OMGP_filename = 'OMGP_model/DART/learner30.pickle'
-IMGP_filename = 'IMGP_model/learner30.pickle'
+# OMGP_filename = 'OMGP_model/DART/learner30.pickle'
+IMGP_filename = 'IMGP_model/DART/learner25.pickle'
 
-GMM = joblib.load(GMLRM_filename)
-OMGP = joblib.load(OMGP_filename)
+# GMM = joblib.load(GMLRM_filename)
+# OMGP = joblib.load(OMGP_filename)
 IMGP = joblib.load(IMGP_filename)
 # OMGPx = joblib.load(OMGP_filename1)
 # OMGPy = joblib.load(OMGP_filename2)
@@ -40,7 +40,7 @@ def main():
     k=0
     temp_ss = 0
     t=0
-    n_regressors = len(IMGP)
+    n_regressors = IMGP.M
     print(n_regressors)
     while True:
         
@@ -56,7 +56,7 @@ def main():
         np_temp = np.asarray(temp_state)[None,...]
         te_temp = torch.from_numpy(np_temp).float()
 
-        mm_action, ss_action = OMGP.predict(te_temp)
+        mm_action, ss_action = IMGP.predict(te_temp)
         # mm_actionx, ss_actionx = OMGPx.predict(te_temp)
         # mm_actiony, ss_actiony = OMGPy.predict(te_temp)
         
@@ -73,19 +73,23 @@ def main():
         # a_x = 0.0
         # a_y = mm_action[k][0]
         # OMGP_a = [a_y,a_x]
+
+        a_x = mm_action[k][0][0]
+        a_y = mm_action[k][0][1]
+        IMGP_a = [a_y,a_x]
        
         # a_x = GMM.predict(s)[k][0]
         # a_y = GMM.predict(s)[k][1]
         # GMM_a = [a_y,a_x]
         
-        [means, vars] = IMGP[k].get_target_predictions(np_temp)
+        # [means, vars] = IMGP[k].get_target_predictions(np_temp)
     
-        a_x = means[0][0]
-        a_y = means[0][1]
-        if abs(a_y) >0.9 :
-            a_y /= abs(a_y)
-            a_y *= 0.9
-        IMGP_a = [a_y,a_x]
+        # a_x = means[0][0]
+        # a_y = means[0][1]
+        # if abs(a_y) >0.9 :
+        #     a_y /= abs(a_y)
+        #     a_y *= 0.9
+        # IMGP_a = [a_y,a_x]
         
        
         a = IMGP_a

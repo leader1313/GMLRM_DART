@@ -14,8 +14,10 @@ class OMGP:
     self.Noise = np.zeros(self.D)
 
     self.kern = [kernel() for _ in range(self.M)]
+    for m in range(self.M):
+      print(self.kern[m].sigma)
 
-    self.log_p_y_sigma = torch.tensor(np.log(0.1)).float()
+    self.log_p_y_sigma = torch.tensor(np.log(0.2)).float()
 
     self.p_z_pi = torch.ones(self.M, self.N) / self.M
     self.q_z_pi = torch.ones(self.M, self.N) / self.M
@@ -26,15 +28,13 @@ class OMGP:
 
   def update_q_z(self):
     sigma = torch.exp(self.log_p_y_sigma)
-
     log_pi = -0.5/sigma * ((self.Y.repeat(self.M,1,1)-self.q_f_mean)**2).sum(2) \
              -0.5/sigma * torch.stack([torch.diag(self.q_f_sig[m]) for m in range(self.M)]) \
              -0.5*torch.log(np.pi*2*sigma)*self.D
-
+    
     self.q_z_pi = self.p_z_pi * torch.exp(log_pi)
-
+  
     self.q_z_pi /= self.q_z_pi.sum(0)[None,:]
-
     self.q_z_pi[torch.isnan(self.q_z_pi)] = 1.0/self.M
 
 
@@ -76,66 +76,83 @@ class OMGP:
       self.update_q_f()
       self.update_q_z()
   
+  def hyperParameters(self):
+    sigma = copy.copy(self.log_p_y_sigma.numpy())
+    parameters = [sigma]
+    for m in range(self.M):
+      theta = copy.copy(self.kern[m].sigma.numpy())
+      parameters += [theta]
+    
+    return parameters
 
   def negative_log_likelihood(self, n_batch=None):
     if n_batch is None:
-      sigma = torch.exp(self.log_p_y_sigma)
-      K = torch.stack([self.kern[m].K(self.X)+torch.eye(self.N)*1e-5 for m in range(self.M)])
-      q_z_pi = copy.deepcopy(self.q_z_pi)
-      q_z_pi[q_z_pi!=0] /= sigma
-      B = torch.stack([torch.diag(q_z_pi[m]) for m in range(self.M)])
-      sqrtB = torch.sqrt(B)
-
-      R = torch.stack([torch.eye(self.N)+sqrtB[m].mm(K[m]).mm(sqrtB[m]) for m in range(self.M)])
-
-      lk_y = torch.zeros(1)
-      for m in range(self.M):
-        # lk_y += self.D*torch.trace(torch.log(R[m]))
-        lk_y += self.D*torch.slogdet(R[m])[1]
-        lk_y += 0.5*torch.trace(self.Y.t().mm(sqrtB[m]).mm(torch.solve(sqrtB[m], R[m])[0]).mm(self.Y))
-
-      lk_z = 0.5*(self.q_z_pi*torch.log(np.pi*2*sigma)).sum()
-
+      ind = torch.arange(self.N)
     else:
       ind = torch.randperm(self.N)[:n_batch]
 
-      sigma = torch.exp(self.log_p_y_sigma)
-      K = torch.stack([self.kern[m].K(self.X[ind])+torch.eye(n_batch)*1e-5 for m in range(self.M)])
-      q_z_pi = copy.deepcopy(self.q_z_pi)
-      q_z_pi[q_z_pi!=0] /= sigma
-      B = torch.stack([torch.diag(q_z_pi[m][ind]) for m in range(self.M)])
-      sqrtB = torch.sqrt(B)
+    sigma = torch.exp(self.log_p_y_sigma)
+    K = torch.stack([self.kern[m].K(self.X[ind])+torch.eye(ind.shape[0])*1e-5 for m in range(self.M)])
+    q_z_pi = copy.deepcopy(self.q_z_pi)
+    q_z_pi[q_z_pi!=0] /= sigma
+    B = torch.stack([torch.diag(q_z_pi[m][ind]) for m in range(self.M)])
+    sqrtB = torch.sqrt(B)
 
-      R = torch.stack([torch.eye(n_batch)+sqrtB[m].mm(K[m]).mm(sqrtB[m]) for m in range(self.M)])
+    R = torch.stack([torch.eye(ind.shape[0])+sqrtB[m].mm(K[m]).mm(sqrtB[m]) for m in range(self.M)])
 
-      lk_y = torch.zeros(1)
-      for m in range(self.M):
-        # lk_y += self.D*torch.trace(torch.log(R[m]))
-        lk_y += self.D*torch.slogdet(R[m])[1]
-        lk_y += 0.5*torch.trace(self.Y[ind].t().mm(sqrtB[m]).mm(torch.solve(sqrtB[m], R[m])[0]).mm(self.Y[ind]))
+    lk_y = torch.zeros(1)
+    for m in range(self.M):
+      lk_y += self.D*torch.slogdet(R[m])[1]
+      lk_y += 0.5*torch.trace(self.Y[ind].t().mm(sqrtB[m]).mm(torch.solve(sqrtB[m], R[m])[0]).mm(self.Y[ind]))
 
-      lk_z = 0.5*(self.q_z_pi*torch.log(np.pi*2*sigma)).sum()
+    lk_z = 0.5*(self.q_z_pi*torch.log(np.pi*2*sigma)).sum()
 
 
     return (lk_y + lk_z)
 
 
   def learning(self, N=3):
-    N = self.T
-    for i in range(N):
+    Max_step = self.T
+    NL = self.negative_log_likelihood()
+    parameters = self.hyperParameters()
+    step = 0
+    stop_flag = False
+    Max_patient = 5
+    patient_count = 0 
+    while ((step < Max_step) and not(stop_flag)):
+      step += 1
+      print("=========================")
       print('E step')
       self.expectation(300)
       print('M step')
       self.maximization()
+      
+      print(step,' th NL : ',self.negative_log_likelihood())
+      print('Sigma : ',torch.exp(self.log_p_y_sigma))
+      print("Z : ",self.q_z_pi.sum(axis = 1))
+      
+      print(parameters)
 
-      print(i,' : ',self.negative_log_likelihood())
-      self.negative_log_likelihood()
+      if NL > self.negative_log_likelihood():
+        patient_count = 0
+        NL = self.negative_log_likelihood()
+        parameters = self.hyperParameters()
+          
+      else : 
+        patient_count += 1
+        print("-------Patient_Count(< %i) : %i"%(Max_patient,patient_count))
+        if patient_count >= Max_patient:
+          self.log_p_y_sigma = torch.from_numpy(parameters[0])
+          for m in range(self.M):
+            self.kern[m].sigma = torch.from_numpy(parameters[m+1])
+          stop_flag = True
+
     self.Noise = np.exp(self.log_p_y_sigma.numpy())
     
 
 
   def maximization(self):
-    max_iter = 500
+    max_iter = 100
 
     self.compute_grad(True)
     param = [self.log_p_y_sigma]
@@ -150,9 +167,10 @@ class OMGP:
       f = self.negative_log_likelihood(n_batch=10) 
       f.backward()
       optimizer.step()
-
+      # print(param)
       if torch.isnan(param[0]).sum()>0:
         import ipdb; ipdb.set_trace()
+    
 
     self.compute_grad(False)
     
@@ -163,21 +181,23 @@ if __name__=="__main__":
   import matplotlib.pyplot as plt
   plt.style.use("ggplot")
 
-  N = 500
-  X = np.atleast_2d(np.linspace(0, np.pi*2, N))
-  Y1 = np.sin(X) + np.atleast_2d(np.random.randn(N)) * 0.1
-  Y2 = np.cos(X) + np.atleast_2d(np.random.randn(N)) * 0.1
+  N = 100
+  M = 2
+  X = np.linspace(0, np.pi*2, N)[:,None]
+  Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.5
+  Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.5
 
   X = torch.from_numpy(X).float()
   Y1 = torch.from_numpy(Y1).float()
   Y2 = torch.from_numpy(Y2).float()
 
   kern = GaussianKernel()
-  model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 2,10, GaussianKernel)
+  model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), M,10, GaussianKernel)
 
+  # for i in range(20):
   model.learning()
-
-  xx = np.atleast_2d(np.linspace(0, np.pi*2, 100))
+  
+  xx = np.linspace(0, np.pi*2, 100)[:,None]
   xx = torch.from_numpy(xx).float()
   mm, ss = model.predict(xx)
 
@@ -187,12 +207,12 @@ if __name__=="__main__":
 
   plt.scatter(X, Y1)
   plt.scatter(X, Y2)
-  line = plt.plot(xx, mm[0])
-  plt.plot(xx, mm[0,:,0]+ss[0], "--", color=line[0].get_color())
-  plt.plot(xx, mm[0,:,0]-ss[0], "--", color=line[0].get_color())
-
-  line = plt.plot(xx, mm[1])
-  plt.plot(xx, mm[1,:,0]+ss[1], "--", color=line[0].get_color())
-  plt.plot(xx, mm[1,:,0]-ss[1], "--", color=line[0].get_color())
+  for m in range(M):
+    line = plt.plot(xx, mm[m])
+    plt.plot(xx, mm[m,:,0]+ss[m], "--", color=line[0].get_color())
+    plt.plot(xx, mm[m,:,0]-ss[m], "--", color=line[0].get_color())
+  # if i%2 : plt.savefig('image/'+str(i))
+  
+  # plt.cla()
   plt.show()
 

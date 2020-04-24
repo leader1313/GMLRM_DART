@@ -20,22 +20,22 @@ def main():
     rospy.init_node('Success_rate', anonymous=True, disable_signals=True)
     rospy.on_shutdown(shutdown)
     rate = rospy.Rate(10)
-    Max_trial = 200
+    
     df = pd.DataFrame(columns=['Model_name', 'success_rate','var_s','var_f'] )
 
     #########  Load model       #######
-    BC1_filename = 'OMGP_model/BC/learnerBC1.pickle'
-    BC2_filename = 'OMGP_model/BC/learnerBC2.pickle'
-    BC3_filename = 'OMGP_model/BC/learnerBC3.pickle'
-    BC4_filename = 'OMGP_model/BC/learnerBC4.pickle'
-    BC5_filename = 'OMGP_model/BC/learnerBC5.pickle'
-    BC6_filename = 'OMGP_model/BC/learnerBC6.pickle'
-    DART1_filename = 'OMGP_model/DART/learner5.pickle'
-    DART2_filename = 'OMGP_model/DART/learner10.pickle'
-    DART3_filename = 'OMGP_model/DART/learner15.pickle'
-    DART4_filename = 'OMGP_model/DART/learner20.pickle'
-    DART5_filename = 'OMGP_model/DART/learner25.pickle'
-    DART6_filename = 'OMGP_model/DART/learner30.pickle'
+    BC1_filename = 'IMGP_model/BC/learner5.pickle'
+    BC2_filename = 'IMGP_model/BC/learner10.pickle'
+    BC3_filename = 'IMGP_model/BC/learner15.pickle'
+    BC4_filename = 'IMGP_model/BC/learner20.pickle'
+    BC5_filename = 'IMGP_model/BC/learner25.pickle'
+    BC6_filename = 'IMGP_model/BC/learner30.pickle'
+    DART1_filename = 'IMGP_model/DART/learner5.pickle'
+    DART2_filename = 'IMGP_model/DART/learner10.pickle'
+    DART3_filename = 'IMGP_model/DART/learner15.pickle'
+    DART4_filename = 'IMGP_model/DART/learner20.pickle'
+    DART5_filename = 'IMGP_model/DART/learner25.pickle'
+    DART6_filename = 'IMGP_model/DART/learner30.pickle'
 
     models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename,DART6_filename
                 ,BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename,BC6_filename]
@@ -43,6 +43,10 @@ def main():
     #########  model selection  #######
     for filename in models:
         model = joblib.load(filename)
+        #max trial definition
+        'we want to 100 trial per one mixture.'
+        Max_mixture = model.M
+        Max_trial = Max_mixture * 1
         #mean of Variance
         Sum_ss = 0
         Sum_fs = 0
@@ -52,8 +56,9 @@ def main():
         var_f=0
         successRate = 0
         trial = 0
+        num_Mixture = 0
         #########  100s trial       #######
-        while (trial <= Max_trial) :
+        while (trial < Max_trial) :
             trial += 1
             step=0
             temp_ss = 0
@@ -61,8 +66,9 @@ def main():
             sampling_flag = False
             Sub.success = False
             fail_flag = False
-            k = 0
-            if trial > int((Max_trial)/2): k = 1
+            print(num_Mixture)
+            if trial > int((num_Mixture+1)*(Max_trial)/Max_mixture): num_Mixture += 1
+            print(num_Mixture)
         #########  While trial      ####### 
             start_flag = True   
             
@@ -81,15 +87,15 @@ def main():
                 mm_action, ss_action = model.predict(te_temp)
 
             #### Action and regret
-                a_x = mm_action[k][0][0]
-                a_y = mm_action[k][0][1]
-                ss  = ss_action[k]
+                a_x = mm_action[num_Mixture][0][0]
+                a_y = mm_action[num_Mixture][0][1]
+                ss  = ss_action[num_Mixture]
                 # Constraint for safe
                 if abs(a_y) > 0.9 :
                     a_y /= abs(a_y)
                     a_y *= 0.9
-                OMGP_a = [a_y,a_x]   
-                a = OMGP_a
+                IMGP_a = [a_y,a_x]   
+                a = IMGP_a
                 
             #### Control
                 #### Start
@@ -123,16 +129,18 @@ def main():
                     break
                     
                 rate.sleep()
-            print('Model : %s , Trial : %i, s : %i, f : %i'%(filename,trial+1, N_s,N_f))
+            print('Model : %s , Trial : %i, s : %i, f : %i'%(filename,trial, N_s,N_f))
         successRate = N_s/Max_trial
         if N_s > 0:
             var_s = Sum_ss/N_s
         else : var_s = 0
         if N_f > 0:
             var_f = Sum_fs/N_f
+
         else : var_f = 0
         
         df2 = pd.DataFrame({"Model_name": filename, 
+                        "Num_Mixture" : Max_mixture,
                         "success_rate":successRate,
                         "var_s":var_s,
                         "var_f":var_f}) 
