@@ -5,7 +5,7 @@ from tools.Fail_condition import Fail
 import pickle
 import rospy, torch
 import numpy as np
-import joblib
+import joblib, random
 
 
 Sub = Subscriber()
@@ -14,9 +14,15 @@ Pub = Publisher()
 #########  Load model  #######
 # GMLRM_filename = 'GMLRM_model/learner.pickle'
 # OMGP_filename1 = 'OMGP_model/learner11x.pickle'
-# OMGP_filename2 = 'OMGP_model/learner11y.pickle'
-# OMGP_filename = 'OMGP_model/DART/learner30.pickle'
-IMGP_filename = 'IMGP_model/DART/learner25.pickle'
+# IMGP_filename = 'IMGP_model/DART/learner12.pickle'
+# IMGP_filename = 'IMGP_model/push_pick_BC/learner8.pickle'
+# IMGP_filename = 'IMGP_model/push_pick_DART/learner4.pickle'
+# IMGP_filename = 'IMGP_model/learner12.pickle'
+IMGP_filename = 'OMGP_model/learner12.pickle'
+# IMGP_filename = 'OMGP_model/push_pick_DART/learner12.pickle'
+# IMGP_filename = 'OMGP_model/learner12.pickle'
+
+# IMGP_filename = 'IMGP_model/DART/learner30.pickle'
 
 # GMM = joblib.load(GMLRM_filename)
 # OMGP = joblib.load(OMGP_filename)
@@ -73,7 +79,12 @@ def main():
         # a_x = 0.0
         # a_y = mm_action[k][0]
         # OMGP_a = [a_y,a_x]
-
+        # if ss_action[0] > ss_action[1]:
+        #     k = 1
+        # else: k = 0
+        # ss, k = ss_action.max(0)
+        # k = int(k)
+        print(k)
         a_x = mm_action[k][0][0]
         a_y = mm_action[k][0][1]
         IMGP_a = [a_y,a_x]
@@ -95,7 +106,8 @@ def main():
         a = IMGP_a
 
         if buttons[2] :
-            Pub.reset()
+            time = int(random.uniform(-1,12))
+            Pub.reset(time)
             sampling_flag = True
 
         elif buttons[1] :

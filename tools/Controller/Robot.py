@@ -13,7 +13,7 @@ class Robot(object):
         E = goal-end
         DE = E-DE
         
-        if abs(E) > 0.04 :
+        if abs(E) > 0.05 :
             a = (E/abs(E))*1.0
         else :
             IE += E

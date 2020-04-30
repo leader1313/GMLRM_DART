@@ -19,7 +19,7 @@ import pickle, joblib
 load = Load('data/')
 
 class Learning:
-    def __init__(self, method, max_iter, train_x, train_y):
+    def __init__(self, method, max_iter, train_x, train_y,DART=None):
         self.X = load.dataframe_to_numpy(train_x)
         self.Y = load.dataframe_to_numpy(train_y)
         self.T = max_iter
@@ -33,7 +33,7 @@ class Learning:
         elif method == 'OMGP' :
             self.X = load.num_to_ten(self.X).float()
             self.Y = load.num_to_ten(self.Y).float()
-            self.model = OMGP(self.X, self.Y, self.K, self.T, GaussianKernel)
+            self.model = OMGP(self.X, self.Y, 2, self.T, GaussianKernel)
 
         elif method == 'IMGP' :
             self.X = load.num_to_ten(self.X).float()

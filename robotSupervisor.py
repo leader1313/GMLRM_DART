@@ -2,6 +2,7 @@ from tools.Data.Subscriber import Subscriber
 from tools.Data.Publisher import Publisher
 from tools.Data.Save import Save
 from tools.Data.Load import Load
+from tools.Data.Clear import clear
 from tools.Fail_condition import Fail
 from tools.Learning.Learning import Learning
 from tools.supervisor import Supervisor
@@ -9,7 +10,7 @@ from tools.Controller.Robot import Robot
 import rospy,sys,subprocess, pickle
 import matplotlib.pyplot as plt
 import pandas as pd
-import xlsxwriter
+import xlsxwriter, os
 
 
 save = Save('data/')
@@ -34,9 +35,10 @@ def shutdown():
     
 def main():
     global state, action
+    clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 30
+    Max_trajectory = 12
     noise = [0.0,0.0]
     sampling_flag = False
     save_flag = False
@@ -72,7 +74,7 @@ def main():
             temp_state, temp_action = save.tempDataframe(s, a, Num_goal)
             fail_flag = fail.fail_check(Sub.simulationTime)
             if button :
-                Pub.reset()
+                Pub.reset(t)
                 initialize()
                 k += 1
                 k %= 2
@@ -114,7 +116,7 @@ def main():
             
             rate.sleep()
         
-        if ((dataNumber-1) % 2 ==0) :
+        if ((dataNumber-1) % 12 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
             for i in range(Num_data):

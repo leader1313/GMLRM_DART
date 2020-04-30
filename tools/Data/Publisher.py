@@ -5,6 +5,7 @@ import os, time, rospy,random, math
 import numpy as np
 from geometry_msgs.msg import Point
 from std_msgs.msg import Float32MultiArray, Bool
+from itertools import permutations
 
 
 class Publisher(object):
@@ -26,13 +27,21 @@ class Publisher(object):
         self.init_target = Point(x = -0.4155, y = -0.1098 , z = 0.34)
         self.goal_pose = Point()
 
-    def reset(self):
+    def reset(self,i):
         self.sim_stop()
         rospy.sleep(0.2)
         self.sim_start()
         rospy.sleep(0.5)
-        self.reset_goal1_pub.publish(self.random_goal_pose(-0.75,-0.25))
-        self.reset_goal2_pub.publish(self.random_goal_pose(-0.75,0.05))
+        points = self.goal_point(i)
+        #random reset=====================================================
+        # self.reset_goal1_pub.publish(self.random_goal_pose())
+        # self.reset_goal2_pub.publish(self.random_goal_pose())
+        self.reset_goal1_pub.publish(self.random_goal_pose(-0.9,-0.1))
+        self.reset_goal2_pub.publish(self.random_goal_pose(-0.6,-0.1))
+        # self.reset_goal1_pub.publish(self.random_goal_pose(-0.75,-0.25))
+        # self.reset_goal2_pub.publish(self.random_goal_pose(-0.75,0.05))
+        # self.reset_goal1_pub.publish(self.random_goal_pose(points[0,0],points[0,1]))
+        # self.reset_goal2_pub.publish(self.random_goal_pose(points[1,0],points[1,1]))
         print('reset')
         rospy.sleep(0.5)
 
@@ -48,11 +57,35 @@ class Publisher(object):
         self.pause_pub.publish(True)
         print('pause simulation...')
 
-    def random_goal_pose(self,x,y):
-        max_X_length = 0.3
-        max_Y_length = 0.2
+    def goal_point(self,pose):
+        '''pick one point into the points
+        I devided table as multi points
+            point1 = (-0.85,-0.25)
+            point2 = (-0.85,0.05)
+            point3 = (-0.55,0.05)
+            point4 = (-0.55,-0.25)
+        '''
+        x = [-0.95, -0.65]
+        y = [-0.25, 0.05]
+        points =np.ones((len(x)*len(y),2))
+        t=0
+        for i in range(len(x)):
+            for j in range(len(y)):
+                points[t]=[x[i],y[j]]
+                t+=1
+        point =np.array(list(permutations(points,2)))[pose]
+        return point
+
+    
+    # def random_goal_pose(self):
+        # max_X_length = 0.3
+        # max_Y_length = 0.3
         # center_x = -0.7074
-        # center_y = -0.0998
+        # center_y = -0.0998    
+    def random_goal_pose(self,x,y):
+        max_X_length = 0.0
+        max_Y_length = 0.0
+       
         center_x = x
         center_y = y
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
@@ -82,12 +115,11 @@ class Publisher(object):
 
     def joyInput(self):
         self.game_pad.Update()
-        self.axes = self.game_pad.axes_[:2]
+        self.axes = [i * 50 for i in (self.game_pad.axes_[:2])]
         self.buttons = self.game_pad.buttons_[:4]
         return self.axes, self.buttons
 
     def actionInput(self, action):
-        # action += np.random.normal(0,0.1,1)
         self.game_pad_state.data = list(action)
         self.action_pub.publish(self.game_pad_state)
 

@@ -6,7 +6,7 @@ import pickle, sys
 import rospy, torch
 import numpy as np
 import pandas as pd
-import joblib
+import joblib, random
 
 #########  initialization   #######
 Sub = Subscriber()
@@ -24,29 +24,55 @@ def main():
     df = pd.DataFrame(columns=['Model_name', 'success_rate','var_s','var_f'] )
 
     #########  Load model       #######
-    BC1_filename = 'IMGP_model/BC/learner5.pickle'
-    BC2_filename = 'IMGP_model/BC/learner10.pickle'
-    BC3_filename = 'IMGP_model/BC/learner15.pickle'
-    BC4_filename = 'IMGP_model/BC/learner20.pickle'
-    BC5_filename = 'IMGP_model/BC/learner25.pickle'
-    BC6_filename = 'IMGP_model/BC/learner30.pickle'
-    DART1_filename = 'IMGP_model/DART/learner5.pickle'
-    DART2_filename = 'IMGP_model/DART/learner10.pickle'
-    DART3_filename = 'IMGP_model/DART/learner15.pickle'
-    DART4_filename = 'IMGP_model/DART/learner20.pickle'
-    DART5_filename = 'IMGP_model/DART/learner25.pickle'
-    DART6_filename = 'IMGP_model/DART/learner30.pickle'
+    # BC1_filename = 'IMGP_model/BC/learner3.pickle'
+    # BC2_filename = 'IMGP_model/BC/learner6.pickle'
+    # BC3_filename = 'IMGP_model/BC/learner9.pickle'
+    # BC4_filename = 'IMGP_model/BC/learner12.pickle'
+    # BC5_filename = 'IMGP_model/BC/learner15.pickle'
+    # BC6_filename = 'IMGP_model/BC/learner18.pickle'
+    # BC7_filename = 'IMGP_model/BC/learner21.pickle'
+    # BC8_filename = 'IMGP_model/BC/learner24.pickle'
+    # BC9_filename = 'IMGP_model/BC/learner27.pickle'
+    # BC10_filename = 'IMGP_model/BC/learner30.pickle'
+    # DART1_filename = 'IMGP_model/DART/learner3.pickle'
+    # DART2_filename = 'IMGP_model/DART/learner6.pickle'
+    # DART3_filename = 'IMGP_model/DART/learner9.pickle'
+    # DART4_filename = 'IMGP_model/DART/learner12.pickle'
+    # DART5_filename = 'IMGP_model/DART/learner15.pickle'
+    # DART6_filename = 'IMGP_model/DART/learner18.pickle'
+    # DART7_filename = 'IMGP_model/DART/learner21.pickle'
+    # DART8_filename = 'IMGP_model/DART/learner24.pickle'
+    # DART9_filename = 'IMGP_model/DART/learner27.pickle'
+    # DART10_filename = 'IMGP_model/DART/learner30.pickle'
 
-    models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename,DART6_filename
-                ,BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename,BC6_filename]
+    # BC1_filename = 'OMGP_model/BC/learner1.pickle'
+    # BC2_filename = 'OMGP_model/BC/learner2.pickle'
+    # BC3_filename = 'OMGP_model/BC/learner3.pickle'
+    # BC4_filename = 'OMGP_model/BC/learner4.pickle'
+    # BC5_filename = 'OMGP_model/BC/learner5.pickle'
+    # DART1_filename = 'OMGP_model/DART/learner1.pickle'
+    # DART2_filename = 'OMGP_model/DART/learner2.pickle'
+    # DART3_filename = 'OMGP_model/DART/learner3.pickle'
+    # DART4_filename = 'OMGP_model/DART/learner4.pickle'
+    # DART5_filename = 'OMGP_model/DART/learner5.pickle'
 
+    BC_filename = 'IMGP_model/BC/learner12.pickle'
+    DART_filename = 'IMGP_model/DART/learner12.pickle'
+
+    # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
+    #           ,BC6_filename,BC7_filename,BC8_filename,BC9_filename,BC10_filename
+    #           ,DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
+    #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
+    # models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
+    #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
+    models = [DART_filename,BC_filename]
     #########  model selection  #######
     for filename in models:
         model = joblib.load(filename)
         #max trial definition
-        'we want to 100 trial per one mixture.'
+        '''we want to 100 trial per one mixture.'''
         Max_mixture = model.M
-        Max_trial = Max_mixture * 1
+        Max_trial = Max_mixture * 500
         #mean of Variance
         Sum_ss = 0
         Sum_fs = 0
@@ -66,9 +92,7 @@ def main():
             sampling_flag = False
             Sub.success = False
             fail_flag = False
-            print(num_Mixture)
             if trial > int((num_Mixture+1)*(Max_trial)/Max_mixture): num_Mixture += 1
-            print(num_Mixture)
         #########  While trial      ####### 
             start_flag = True   
             
@@ -87,10 +111,13 @@ def main():
                 mm_action, ss_action = model.predict(te_temp)
 
             #### Action and regret
+                # ss, k = ss_action.max(0)
+                # k = int(k)
+                
                 a_x = mm_action[num_Mixture][0][0]
                 a_y = mm_action[num_Mixture][0][1]
-                ss  = ss_action[num_Mixture]
-                # Constraint for safe
+                ss = ss_action[num_Mixture]
+                # Constraint for safeF
                 if abs(a_y) > 0.9 :
                     a_y /= abs(a_y)
                     a_y *= 0.9
@@ -100,7 +127,8 @@ def main():
             #### Control
                 #### Start
                 if start_flag :
-                    Pub.reset()
+                    time = int(random.uniform(-1,12))
+                    Pub.reset(time)
                     sampling_flag = True
                     fail_flag =False
                     start_flag = False

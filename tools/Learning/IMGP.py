@@ -16,7 +16,7 @@ class IMGP:
         
         self.kern = np.array([kernel() for _ in range(self.M)])
 
-        self.alpha = torch.tensor(np.log(100)).float()
+        self.alpha = torch.tensor(np.log(1000)).float()
         self.log_p_y_sigma = torch.tensor(np.log(0.2)).float()
 
         self.q_z_pi = torch.ones(self.M, self.N) / self.M
@@ -118,7 +118,6 @@ class IMGP:
 
         return param
 
-
     def negative_lowerbound(self, n_batch=None):
         
         if n_batch is None:
@@ -129,39 +128,7 @@ class IMGP:
         alpha = torch.exp(self.alpha)
         sigma = torch.exp(self.log_p_y_sigma)
 
-# #Expectation of likelihood        
-#         lk = torch.zeros(1)
-        
-#         for m in range(0,self.M):
-#             if self.q_z_pi[m,:].sum() > self.prob_thresh:
-#                 a_nm = -0.5/sigma * ((self.Y[ind]-self.q_f_mean[m][ind])**2).sum(1) \
-#                             -0.5/sigma * torch.diag(self.q_f_sig[m])[ind] \
-#                             -0.5*torch.log(np.pi*2*sigma)*self.D
-#                 lk += self.q_z_pi[m][ind][None,...].mm(a_nm[...,None]).sum()
-# #KL(f*|f)
-#         kl_f = torch.zeros(1)
-#         for m in range(0,self.M):
-#             if self.q_z_pi[m,:].sum() > self.prob_thresh:
-#                 K = self.kern[m].K(self.X[ind])+torch.eye(ind.shape[0])*1e-5
-#                 K_1 = torch.solve(torch.eye(ind.shape[0]),K)[0]
-                
-#                 q_z_pi = copy.deepcopy(self.q_z_pi)
-#                 q_z_pi[q_z_pi!=0] /= sigma
-#                 B = torch.diag(q_z_pi[m][ind])                
-
-#                 C_1 = K_1 +B
-#                 mu = (torch.solve(B, C_1)[0]).mm(self.Y[ind])
-                
-#                 IKB = torch.eye(ind.shape[0])+K.mm(B)
-#                 IKB_1 = torch.solve(torch.eye(ind.shape[0]),IKB)[0]
-
-#                 kl_f += self.D * torch.slogdet(IKB)[1]
-#                 kl_f -= self.D * ind.shape[0]
-#                 kl_f += mu.T.mm(K_1).mm(mu).sum()
-#                 kl_f += torch.trace(IKB_1)
-                
-#         kl_f *= 0.5
-
+#Expectation of likelihood        
 
         K = torch.stack([self.kern[m].K(self.X[ind])+torch.eye(ind.shape[0])*1e-5 for m in range(self.M)])
         q_z_pi = copy.deepcopy(self.q_z_pi)
@@ -233,7 +200,7 @@ class IMGP:
                 kl_v += (v_beta_a[m]-1)*(E_ln_v[m])+(v_beta_b[m]-alpha)*(E_ln_1_minus_v[m])
                 
         
-        return lk_1 + lk_2 - E_zv + kl_v
+        return (lk_1 + lk_2 - E_zv + kl_v)/self.N
 
     def learning(self, N=3):
         Max_step = self.T
@@ -241,7 +208,7 @@ class IMGP:
         self.save_checkpoint()
         step = 0
         stop_flag = False
-        Max_patient = 5
+        Max_patient = 10
         patient_count = 0 
         while ((step < Max_step) and not(stop_flag)):
             step += 1
@@ -274,8 +241,9 @@ class IMGP:
                             i += 1
                     stop_flag = True
         
-        limit_prob = self.N*(1/self.M)
-
+        limit_prob = self.N*(1/self.M)*0.1
+        
+        print(self.q_z_pi.sum(axis = 1))
         M = self.q_z_pi.sum(axis = 1) > limit_prob
         
         M = M.numpy()
@@ -302,7 +270,6 @@ class IMGP:
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 param += self.kern[m].param()
         optimizer = torch.optim.Adam(param)
-        print(param)
 
         for i in range(max_iter):
             optimizer.zero_grad()
@@ -326,22 +293,23 @@ if __name__=="__main__":
     import matplotlib.pyplot as plt
     plt.style.use("ggplot")
 
-    N = 100
-    X = np.linspace(0, np.pi*2, N)[:,None]
+    N = 50
+    X = np.linspace(0, -np.pi*2, N)[:,None]
     Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.2
     Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.2
+    
 
     X = torch.from_numpy(X).float()
     Y1 = torch.from_numpy(Y1).float()
     Y2 = torch.from_numpy(Y2).float()
 
     kern = GaussianKernel()
-    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,30, GaussianKernel)
+    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,10, GaussianKernel)
 
     model.learning()
     
     num_graph = model.M
-    xx = np.linspace(0, np.pi*2, 100)[:,None]
+    xx = np.linspace(0, -np.pi*2, 100)[:,None]
     xx = torch.from_numpy(xx).float()
     mm, ss = model.predict(xx)
 
