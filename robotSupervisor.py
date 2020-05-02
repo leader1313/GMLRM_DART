@@ -15,7 +15,7 @@ import xlsxwriter, os
 
 save = Save('data/')
 load = Load('data/')
-robot = Robot()
+
 Sub = Subscriber()
 s = [Sub.goal_1,Sub.goal_2,Sub.target_pose]
 Pub = Publisher()
@@ -28,6 +28,7 @@ Num_goal = 2
 def initialize():
     global state, action
     state , action = save.initDataframe(Num_goal)
+    
 
 
 def shutdown():
@@ -35,15 +36,18 @@ def shutdown():
     
 def main():
     global state, action
+    ##clear whole file from data dir
     clear()
     ####### Initialize Parameters
     dataNumber = 1
     Max_trajectory = 12
-    noise = [0.0,0.0]
+    init_noise = 0.0
+    noise = [init_noise,init_noise]
     sampling_flag = False
     save_flag = False
     fail_flag = False
-   
+    robot = Robot()
+
     result = {'model_Num' :[]
              ,'noise_x':[]
              ,'noise_y':[]}
@@ -54,7 +58,6 @@ def main():
     rospy.on_shutdown(shutdown)
     rate = rospy.Rate(10)
     for t in range(Max_trajectory):
-            
         Sup_x = Supervisor(noise[0])
         Sup_y = Supervisor(noise[1])
         [a_x,E_x,IE_x] = [0.0,0.0,0.0]
@@ -66,7 +69,6 @@ def main():
         while True:
             s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
             fail = Fail(s)
-            
             a_x, a_y = robot.policy(s,k)
             
             axes = [a_y, a_x]
@@ -74,6 +76,7 @@ def main():
             temp_state, temp_action = save.tempDataframe(s, a, Num_goal)
             fail_flag = fail.fail_check(Sub.simulationTime)
             if button :
+                robot = Robot()
                 Pub.reset(t)
                 initialize()
                 k += 1
@@ -116,7 +119,7 @@ def main():
             
             rate.sleep()
         
-        if ((dataNumber-1) % 12 ==0) :
+        if ((dataNumber-1) % 2 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
             for i in range(Num_data):
@@ -129,13 +132,13 @@ def main():
             Y = action
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
-            model = Learning('IMGP',30,X,Y)
+            model = Learning('OMGP',50,X,Y)
             model.learning(int((dataNumber-1)/2))
             # GMLRM = Learning('GMLRM',100,X,Y)
             # GMLRM.learning()
 
 
-            noise = [model.model.Noise,model.model.Noise]
+            # noise = [model.model.Noise,model.model.Noise]
             # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
             result['noise_x'].append(noise[0])
             result['noise_y'].append(noise[1])

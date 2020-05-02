@@ -17,7 +17,7 @@ class IMGP:
         self.kern = np.array([kernel() for _ in range(self.M)])
 
         self.alpha = torch.tensor(np.log(1000)).float()
-        self.log_p_y_sigma = torch.tensor(np.log(0.2)).float()
+        self.log_p_y_sigma = torch.tensor(np.log(0.09)).float()
 
         self.q_z_pi = torch.ones(self.M, self.N) / self.M
 

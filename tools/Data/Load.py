@@ -1,5 +1,6 @@
 from pandas import Series, DataFrame
 import pandas as pd
+import numpy as np
 import torch
 
 class Load(object):
@@ -16,6 +17,7 @@ class Load(object):
         return numpy_array
     
     def num_to_ten(self, numpy_array):
+        # print(np.unique(numpy_array))
         tensor = torch.from_numpy(numpy_array)
         return tensor
 

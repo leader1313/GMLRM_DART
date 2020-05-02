@@ -19,6 +19,7 @@ Pub = Publisher()
 # IMGP_filename = 'IMGP_model/push_pick_DART/learner4.pickle'
 # IMGP_filename = 'IMGP_model/learner12.pickle'
 IMGP_filename = 'OMGP_model/learner12.pickle'
+# IMGP_filename = 'OMGP_model/limited_random_DART/learner12.pickle'
 # IMGP_filename = 'OMGP_model/push_pick_DART/learner12.pickle'
 # IMGP_filename = 'OMGP_model/learner12.pickle'
 

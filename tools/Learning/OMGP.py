@@ -15,7 +15,7 @@ class OMGP:
 
         self.kern = [kernel() for _ in range(self.M)]
 
-        self.log_p_y_sigma = torch.tensor(np.log(0.2)).float()
+        self.log_p_y_sigma = torch.tensor(np.log(0.01)).float()
 
         self.p_z_pi = torch.ones(self.M, self.N) / self.M
         self.q_z_pi = torch.ones(self.M, self.N) / self.M

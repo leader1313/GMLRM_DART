@@ -16,3 +16,7 @@ GMLRM_model/
 model/*.pickle
 image/
 practice.ipynb
+*.png
+*.avi
+*.mp4
+DART_image/

@@ -1,12 +1,9 @@
-#terminal1 roscore 기동
+[#terminal1] roscore START
 roscore
 
-#terminal2 vrep 기동
+[#terminal2] vrep START
 cd ~/V-REP
 ./vrep.sh
+	{simulation environment START}
+	Drag and Drop vrep sean file(*.ttt) to V-REP
 
-V-REP scean 부분에 crane.ttt 파일을 drag and drop 해서 simulation environment를 기
-
-#terminal3 demonstration_joy.py 기동
-~/UR5_imitationlearning
-python demonstration_joy.py

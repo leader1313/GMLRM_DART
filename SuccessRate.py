@@ -45,19 +45,16 @@ def main():
     # DART9_filename = 'IMGP_model/DART/learner27.pickle'
     # DART10_filename = 'IMGP_model/DART/learner30.pickle'
 
-    # BC1_filename = 'OMGP_model/BC/learner1.pickle'
-    # BC2_filename = 'OMGP_model/BC/learner2.pickle'
-    # BC3_filename = 'OMGP_model/BC/learner3.pickle'
-    # BC4_filename = 'OMGP_model/BC/learner4.pickle'
-    # BC5_filename = 'OMGP_model/BC/learner5.pickle'
-    # DART1_filename = 'OMGP_model/DART/learner1.pickle'
-    # DART2_filename = 'OMGP_model/DART/learner2.pickle'
-    # DART3_filename = 'OMGP_model/DART/learner3.pickle'
-    # DART4_filename = 'OMGP_model/DART/learner4.pickle'
-    # DART5_filename = 'OMGP_model/DART/learner5.pickle'
+    # BC1_filename = 'OMGP_model/Full_random_BC/learner5.pickle'
+    # BC2_filename = 'OMGP_model/Full_random_BC/learner10.pickle'
+    # BC3_filename = 'OMGP_model/Full_random_BC/learner15.pickle'
+    # DART1_filename = 'OMGP_model/Full_random_DART/learner5.pickle'
+    # DART2_filename = 'OMGP_model/Full_random_DART/learner10.pickle'
+    # DART3_filename = 'OMGP_model/Full_random_DART/learner15.pickle'
 
-    BC_filename = 'IMGP_model/BC/learner12.pickle'
-    DART_filename = 'IMGP_model/DART/learner12.pickle'
+
+    BC_filename = 'OMGP_model/limited_random_BC/learner12.pickle'
+    DART_filename = 'OMGP_model/limited_random_DART/learner12.pickle'
 
     # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
     #           ,BC6_filename,BC7_filename,BC8_filename,BC9_filename,BC10_filename
@@ -65,7 +62,12 @@ def main():
     #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
     # models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
     #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
-    models = [DART_filename,BC_filename]
+    models = [BC_filename
+                ,DART_filename]
+
+
+    # models = [DART1_filename,DART2_filename,DART3_filename
+    #           ,BC1_filename,BC2_filename,BC3_filename]
     #########  model selection  #######
     for filename in models:
         model = joblib.load(filename)
@@ -113,7 +115,7 @@ def main():
             #### Action and regret
                 # ss, k = ss_action.max(0)
                 # k = int(k)
-                
+                noise = torch.tensor(np.random.normal(0,0.5,1))
                 a_x = mm_action[num_Mixture][0][0]
                 a_y = mm_action[num_Mixture][0][1]
                 ss = ss_action[num_Mixture]
