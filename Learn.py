@@ -17,7 +17,7 @@ Num_goal = 2
 
 def main():
     state,action = save.initDataframe(Num_goal)
-    for i in range(24):
+    for i in range(10):
         _state, _action = load.dataLoad(i+1)
         state = save.dataAppend(state,_state)
         action = save.dataAppend(action,_action)
@@ -29,7 +29,7 @@ def main():
     X = state
     Y = action
     
-    Learning('OMGP',50,X,Y).learning(12)
+    Learning('IMGP',5,X,Y).learning(12)
 
 if __name__=='__main__':
     main()

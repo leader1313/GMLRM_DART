@@ -15,7 +15,7 @@ class OMGP:
 
         self.kern = [kernel() for _ in range(self.M)]
 
-        self.log_p_y_sigma = torch.tensor(np.log(0.01)).float()
+        self.log_p_y_sigma = torch.tensor(np.log(0.05)).float()
 
         self.p_z_pi = torch.ones(self.M, self.N) / self.M
         self.q_z_pi = torch.ones(self.M, self.N) / self.M
@@ -114,15 +114,13 @@ class OMGP:
 
         return (lk_y + lk_z)
 
-  
-
     def learning(self, N=3):
         Max_step = self.T
         NL = self.negative_log_likelihood()
         self.save_checkpoint()
         step = 0
         stop_flag = False
-        Max_patient = 5
+        Max_patient = 10
         patient_count = 0 
         while ((step < Max_step) and not(stop_flag)):
             step += 1
@@ -164,7 +162,7 @@ class OMGP:
         for m in range(self.M):
             param += self.kern[m].param()
 
-        optimizer = torch.optim.Adam(param)
+        optimizer = torch.optim.Adam(param,lr=0.01)
 
         for i in range(max_iter):
             optimizer.zero_grad()
@@ -186,18 +184,19 @@ if __name__=="__main__":
   import matplotlib.pyplot as plt
   plt.style.use("ggplot")
 
-  N = 10
+  N = 20
+
   M = 2
   X = np.linspace(0, np.pi*2, N)[:,None]
-  Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.5
-  Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.5
+  Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.1
+  Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.1
 
   X = torch.from_numpy(X).float()
   Y1 = torch.from_numpy(Y1).float()
   Y2 = torch.from_numpy(Y2).float()
 
   kern = GaussianKernel()
-  model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), M,30, GaussianKernel)
+  model = OMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), M,300, GaussianKernel)
 
   # for i in range(20):
   model.learning()

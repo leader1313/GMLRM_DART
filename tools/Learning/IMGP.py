@@ -17,7 +17,7 @@ class IMGP:
         self.kern = np.array([kernel() for _ in range(self.M)])
 
         self.alpha = torch.tensor(np.log(1000)).float()
-        self.log_p_y_sigma = torch.tensor(np.log(0.09)).float()
+        self.log_p_y_sigma = torch.tensor(np.log(0.05)).float()
 
         self.q_z_pi = torch.ones(self.M, self.N) / self.M
 
@@ -107,16 +107,28 @@ class IMGP:
         sigma = self.log_p_y_sigma
         alpha = self.alpha
         parameters = [sigma,alpha]
+        q_z_pi = self.q_z_pi
         for m in range(self.M):
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 theta = self.kern[m].param()
                 parameters += theta
-        torch.save(parameters,'data/checkpoint.pt')
+        torch.save({
+                    'q_z_pi':q_z_pi
+                    ,'parameters':parameters
+                    }
+                    ,'data/checkpoint.pt')
 
     def load_checkpoint(self):
-        param = torch.load('data/checkpoint.pt')
-
-        return param
+        checkPoint = torch.load('data/checkpoint.pt')
+        parameters = checkPoint['parameters']
+        self.q_z_pi = checkPoint['q_z_pi']
+        self.log_p_y_sigma = parameters[0]
+        self.alpha = parameters[1]
+        i = 0
+        for m in range(self.M):
+            if self.q_z_pi[m].sum() > self.prob_thresh:
+                self.kern[m].sigma = (parameters[i+2])
+                i += 1
 
     def negative_lowerbound(self, n_batch=None):
         
@@ -230,17 +242,10 @@ class IMGP:
             else : 
                 patient_count += 1
                 print("-------Patient_Count(< %i) : %i"%(Max_patient,patient_count))
-                if patient_count >= Max_patient:
-                    parameters = self.load_checkpoint()
-                    self.log_p_y_sigma = parameters[0]
-                    self.alpha = parameters[1]
-                    i = 0
-                    for m in range(self.M):
-                        if self.q_z_pi[m].sum() > self.prob_thresh:
-                            self.kern[m].sigma = (parameters[i+2])
-                            i += 1
+                if patient_count >= Max_patient: 
                     stop_flag = True
-        
+                    
+        self.load_checkpoint()
         limit_prob = self.N*(1/self.M)*0.1
         
         print(self.q_z_pi.sum(axis = 1))
@@ -269,7 +274,7 @@ class IMGP:
         for m in range(self.M):
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 param += self.kern[m].param()
-        optimizer = torch.optim.Adam(param)
+        optimizer = torch.optim.Adam(param,lr=0.01)
 
         for i in range(max_iter):
             optimizer.zero_grad()
@@ -293,10 +298,10 @@ if __name__=="__main__":
     import matplotlib.pyplot as plt
     plt.style.use("ggplot")
 
-    N = 50
+    N = 20
     X = np.linspace(0, -np.pi*2, N)[:,None]
-    Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.2
-    Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.2
+    Y1 = np.sin(X) + np.random.randn(N)[:,None] * 0.1
+    Y2 = np.cos(X) + np.random.randn(N)[:,None] * 0.1
     
 
     X = torch.from_numpy(X).float()
@@ -304,7 +309,7 @@ if __name__=="__main__":
     Y2 = torch.from_numpy(Y2).float()
 
     kern = GaussianKernel()
-    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,10, GaussianKernel)
+    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,300, GaussianKernel)
 
     model.learning()
     
