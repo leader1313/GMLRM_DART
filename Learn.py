@@ -29,7 +29,7 @@ def main():
     X = state
     Y = action
     
-    Learning('IMGP',5,X,Y).learning(12)
+    Learning('IMGP',10,X,Y).learning(12)
 
 if __name__=='__main__':
     main()

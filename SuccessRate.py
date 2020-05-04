@@ -53,8 +53,8 @@ def main():
     # DART3_filename = 'OMGP_model/Full_random_DART/learner15.pickle'
 
 
-    BC_filename = 'OMGP_model/limited_random_BC/learner12.pickle'
-    DART_filename = 'OMGP_model/limited_random_DART/learner12.pickle'
+    BC_filename = 'OMGP_model/BC/learner12.pickle'
+    DART_filename = 'OMGP_model/DART/learner12.pickle'
 
     # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
     #           ,BC6_filename,BC7_filename,BC8_filename,BC9_filename,BC10_filename

@@ -275,7 +275,9 @@ class IMGP:
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 param += self.kern[m].param()
         optimizer = torch.optim.Adam(param,lr=0.01)
-
+        # optimizer = torch.optim.Adadelta(param,lr=0.01)
+        # optimizer = torch.optim.SGD(param,lr=0.1,momentum=0.9)
+        print(optimizer.state_dict)
         for i in range(max_iter):
             optimizer.zero_grad()
 
@@ -309,7 +311,7 @@ if __name__=="__main__":
     Y2 = torch.from_numpy(Y2).float()
 
     kern = GaussianKernel()
-    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,300, GaussianKernel)
+    model = IMGP(torch.cat([X,X]).float(), torch.cat([Y1, Y2]).float(), 5,30, GaussianKernel)
 
     model.learning()
     

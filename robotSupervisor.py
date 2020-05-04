@@ -40,7 +40,7 @@ def main():
     clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 12
+    Max_trajectory = 18
     init_noise = 0.0
     noise = [init_noise,init_noise]
     sampling_flag = False
@@ -119,7 +119,7 @@ def main():
             
             rate.sleep()
         
-        if ((dataNumber-1) % 2 ==0) :
+        if ((dataNumber-1) % 6 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
             for i in range(Num_data):
@@ -132,13 +132,13 @@ def main():
             Y = action
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
-            model = Learning('OMGP',50,X,Y)
+            model = Learning('OMGP',30,X,Y)
             model.learning(int((dataNumber-1)/2))
             # GMLRM = Learning('GMLRM',100,X,Y)
             # GMLRM.learning()
 
 
-            # noise = [model.model.Noise,model.model.Noise]
+            noise = [model.model.Noise,model.model.Noise]
             # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
             result['noise_x'].append(noise[0])
             result['noise_y'].append(noise[1])
