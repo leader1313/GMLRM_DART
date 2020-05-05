@@ -220,7 +220,7 @@ class IMGP:
         self.save_checkpoint()
         step = 0
         stop_flag = False
-        Max_patient = 10
+        Max_patient = 5
         patient_count = 0 
         while ((step < Max_step) and not(stop_flag)):
             step += 1
@@ -277,7 +277,6 @@ class IMGP:
         optimizer = torch.optim.Adam(param,lr=0.01)
         # optimizer = torch.optim.Adadelta(param,lr=0.01)
         # optimizer = torch.optim.SGD(param,lr=0.1,momentum=0.9)
-        print(optimizer.state_dict)
         for i in range(max_iter):
             optimizer.zero_grad()
 

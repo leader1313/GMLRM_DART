@@ -21,6 +21,7 @@ class Publisher(object):
         self.reset_target_pub = rospy.Publisher('reset_target_pose', Point, queue_size = 10)
         self.reset_goal1_pub = rospy.Publisher('reset_goal1_pose', Point, queue_size = 10)
         self.reset_goal2_pub = rospy.Publisher('reset_goal2_pose', Point, queue_size = 10)
+        self.reset_goal3_pub = rospy.Publisher('reset_goal3_pose', Point, queue_size = 10)
         self.stop_pub = rospy.Publisher('stopSimulation', Bool, queue_size = 1)
         self.start_pub = rospy.Publisher('startSimulation', Bool, queue_size = 1)
         self.pause_pub = rospy.Publisher('pauseSimulation', Bool, queue_size = 1)
@@ -83,9 +84,9 @@ class Publisher(object):
     
     def random_start_pose(self):
         max_X_length = 0.0
-        max_Y_length = 0.1
-        center_x = -0.41
-        center_y = -0.11    
+        max_Y_length = 0.0
+        center_x = -0.41 + 0.09
+        center_y = -0.11 
     
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
         y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)

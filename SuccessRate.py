@@ -53,8 +53,10 @@ def main():
     # DART3_filename = 'OMGP_model/Full_random_DART/learner15.pickle'
 
 
-    BC_filename = 'OMGP_model/BC/learner12.pickle'
-    DART_filename = 'OMGP_model/DART/learner12.pickle'
+    BC1_filename = 'IMGP_model/BC/learner12.pickle'
+    # BC2_filename = 'OMGP_model/BC/learner15.pickle'
+    DART1_filename = 'IMGP_model/DART/learner12.pickle'
+    # DART2_filename = 'OMGP_model/DART/learner15.pickle'
 
     # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
     #           ,BC6_filename,BC7_filename,BC8_filename,BC9_filename,BC10_filename
@@ -62,8 +64,9 @@ def main():
     #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
     # models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
     #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
-    models = [BC_filename
-                ,DART_filename]
+    models = [BC1_filename,DART1_filename]
+    #             ,BC2_filename,DART2_filename]
+    # models = [BC2_filename,DART2_filename]                
 
 
     # models = [DART1_filename,DART2_filename,DART3_filename
@@ -74,7 +77,7 @@ def main():
         #max trial definition
         '''we want to 100 trial per one mixture.'''
         Max_mixture = model.M
-        Max_trial = Max_mixture * 500
+        Max_trial = Max_mixture * 50
         #mean of Variance
         Sum_ss = 0
         Sum_fs = 0
@@ -142,7 +145,7 @@ def main():
                     trial -= 1
                     break
 
-                if (Sub.simulationTime > 1.0) and (sampling_flag) :
+                if (Sub.simulationTime > 0.1) and (sampling_flag) :
                     step += 1
                     temp_ss += ss
                     Pub.actionInput(a)

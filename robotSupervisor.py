@@ -40,7 +40,7 @@ def main():
     clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 18
+    Max_trajectory = 10
     init_noise = 0.0
     noise = [init_noise,init_noise]
     sampling_flag = False
@@ -49,8 +49,8 @@ def main():
     robot = Robot()
 
     result = {'model_Num' :[]
-             ,'noise_x':[]
-             ,'noise_y':[]}
+             ,'Noise':[]
+             ,'Number_of_Mixture':[]}
     row = 0
     col = 0
     initialize()
@@ -119,7 +119,7 @@ def main():
             
             rate.sleep()
         
-        if ((dataNumber-1) % 6 ==0) :
+        if ((dataNumber-1) % 2 ==0) :
             initialize()
             Num_data = int(subprocess.check_output(command + " action | wc -l", shell=True))
             for i in range(Num_data):
@@ -132,7 +132,7 @@ def main():
             Y = action
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
-            model = Learning('OMGP',30,X,Y)
+            model = Learning('IMGP',30,X,Y)
             model.learning(int((dataNumber-1)/2))
             # GMLRM = Learning('GMLRM',100,X,Y)
             # GMLRM.learning()
@@ -140,11 +140,11 @@ def main():
 
             noise = [model.model.Noise,model.model.Noise]
             # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
-            result['noise_x'].append(noise[0])
-            result['noise_y'].append(noise[1])
+            result['Noise'].append(noise[0])
+            result['Number_of_Mixture'].append(model.M)
             result['model_Num'].append(i+1)
             df = pd.DataFrame(result)
-            df.to_excel('data/noise/noise.xlsx')
+            df.to_excel('data/Learning_state/LS.xlsx')
             
             print("="*40)
             print("Optimized Noise x: %f, Noise y: %f" %(noise[0],noise[1]))
