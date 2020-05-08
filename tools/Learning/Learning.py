@@ -5,13 +5,9 @@ from tools.Learning.GP import GPRegression
 from tools.Learning.OMGP import OMGP
 from tools.Learning.IMGP import IMGP
 from tools.Learning.kernel import GaussianKernel
-from tools.Learning.gp_regressors import GPRegressor
-from tools.Learning.nonparametric_gp_regression  import nonparametric_gp_regression
-from tools.Learning.utils.constraints_generator import constraints_generator
 import sys,subprocess
 import pandas as pd
 import numpy as np
-import networkx as nx
 import pickle, joblib
 
 
@@ -24,7 +20,7 @@ class Learning:
         self.Y = load.dataframe_to_numpy(train_y)
         self.T = max_iter
         self.K = 5                                   # solution 수
-        self.M = 3   
+        self.Mixture = 3   
         self.method = method                                 # Number of model
        
         if method == 'GMLRM':

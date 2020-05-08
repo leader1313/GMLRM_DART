@@ -53,9 +53,9 @@ def main():
     # DART3_filename = 'OMGP_model/Full_random_DART/learner15.pickle'
 
 
-    BC1_filename = 'IMGP_model/BC/learner12.pickle'
+    BC1_filename = 'IMGP_model/2BC/learner5.pickle'
     # BC2_filename = 'OMGP_model/BC/learner15.pickle'
-    DART1_filename = 'IMGP_model/DART/learner12.pickle'
+    DART1_filename = 'IMGP_model/2DART/learner5.pickle'
     # DART2_filename = 'OMGP_model/DART/learner15.pickle'
 
     # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
@@ -108,7 +108,7 @@ def main():
                 fail = Fail(s)
                 fail_flag = fail.fail_check(Sub.simulationTime)
 
-                s = [s[0].x,s[1].x,s[0].y,s[1].y,s[2].x,s[2].y]
+                s = [s[0].x,s[0].y,s[1].x,s[1].y,s[2].x,s[2].y]
 
                 temp_state = s
                 np_temp = np.asarray(temp_state)[None,...]

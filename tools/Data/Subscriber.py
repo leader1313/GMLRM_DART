@@ -9,6 +9,7 @@ class Subscriber(object):
     def __init__(self):
         self.goal_1 = Point()
         self.goal_2 = Point()
+        self.goal_3 = Point()
         self.endeffector_pose = Point()
         self.endeffector_vel = Point()
         self.target_pose = Point()
@@ -20,6 +21,7 @@ class Subscriber(object):
         #SUBSCRIBER
         rospy.Subscriber('/goal_1/point',        Point,             self._callback_goal1)
         rospy.Subscriber('/goal_2/point',        Point,             self._callback_goal2)
+        rospy.Subscriber('/goal_3/point',        Point,             self._callback_goal3)
         rospy.Subscriber('/endeffector/Point', Point,             self._callback_endeffector_pose)
         rospy.Subscriber('/Target/Point',      Point,             self._callback_target_pose)
         rospy.Subscriber('/simulationTime',    Float32,           self._callback_simulationTime)
@@ -31,6 +33,9 @@ class Subscriber(object):
 
     def _callback_goal2(self, data):
         self.goal_2 = data
+    
+    def _callback_goal3(self, data):
+        self.goal_3 = data
 
     def _callback_endeffector_pose(self, data):
         self.endeffector_pose = data

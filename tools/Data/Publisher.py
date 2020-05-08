@@ -44,6 +44,7 @@ class Publisher(object):
         # self.reset_goal2_pub.publish(self.random_goal_pose(-0.75,0.05))
         self.reset_goal1_pub.publish(self.random_goal_pose(points[0,0],points[0,1]))
         self.reset_goal2_pub.publish(self.random_goal_pose(points[1,0],points[1,1]))
+        # self.reset_goal3_pub.publish(self.random_goal_pose(points[2,0],points[2,1]))
         print('reset')
         rospy.sleep(0.5)
 
@@ -69,7 +70,9 @@ class Publisher(object):
         '''
         x = [-0.8]
         # y = [-0.25,-0.15,-0.05, 0.05]
-        y = [-0.25, 0.05]
+        # y = [-0.3,-0.1, 0.1]
+        y = [-0.25,0.05]
+        
         totalpose = int(len(x)*len(y))
         points =np.ones((totalpose,2))
         t=0
@@ -83,9 +86,9 @@ class Publisher(object):
 
     
     def random_start_pose(self):
-        max_X_length = 0.0
-        max_Y_length = 0.0
-        center_x = -0.41 + 0.09
+        max_X_length = 0.03
+        max_Y_length = 0.1
+        center_x = -0.41+0.05
         center_y = -0.11 
     
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)

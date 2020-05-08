@@ -17,7 +17,9 @@ Pub = Publisher()
 # IMGP_filename = 'IMGP_model/DART/learner12.pickle'
 # IMGP_filename = 'IMGP_model/push_pick_BC/learner8.pickle'
 # IMGP_filename = 'IMGP_model/push_pick_DART/learner4.pickle'
-IMGP_filename = 'IMGP_model/BC/learner12.pickle'
+IMGP_filename = 'IMGP_model/2DART/learner5.pickle'
+# IMGP_filename = 'IMGP_model/learner5.pickle'
+
 # IMGP_filename = 'OMGP_model/learner7.pickle'
 # IMGP_filename = 'OMGP_model/DART/learner15.pickle'
 # IMGP_filename = 'OMGP_model/BC/learner15.pickle'
@@ -58,9 +60,10 @@ def main():
         
         s1 = Sub.goal_1
         s2 = Sub.goal_2
-        s3 = Sub.endeffector_pose
-        s = [s1.x,s2.x,s1.y,s2.y,s3.x,s3.y]
-        # s = [s1.x,s1.y,s3.x,s3.y]
+        s3 = Sub.goal_3
+        se = Sub.endeffector_pose
+        # s = [s1.x,s1.y,s2.x,s2.y,s3.x,s3.y,se.x,se.y]
+        s = [s1.x,s1.y,s2.x,s2.y,se.x,se.y]
         # s = [s1.y,s2.y,s3.y]
         temp_state = s
         np_temp = np.asarray(temp_state)[None,...]
@@ -86,7 +89,7 @@ def main():
         # if ss_action[0] > ss_action[1]:
         #     k = 1
         # else: k = 0
-        # ss, k = ss_action.max(0)
+        # ss, k = ss_action.min(0)
         # k = int(k)
         print(k)
         a_x = mm_action[k][0][0]

@@ -12,6 +12,7 @@ class Fail(object):
         
         self.goal1 = state[0]
         self.goal2 = state[1]
+        # self.goal3 = state[2]
         self.target = state[2]
 
     def inside_Range(self,target_pose):
