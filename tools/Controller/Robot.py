@@ -2,10 +2,10 @@ import numpy as np
 
 
 class Robot(object):
-    def __init__(self):
+    def __init__(self,Num_Mixture):
         [self.E_x,self.IE_x] = np.zeros(2)
         [self.E_y,self.IE_y] = np.zeros(2)
-
+        self.M = Num_Mixture
     def PIDcontrol(self,goal,end,DE,IE):
         P = 9
         I = 1
@@ -22,8 +22,8 @@ class Robot(object):
         return a, E, IE
 
     def policy(self,s,k):
-        a_x,self.E_x,self.IE_x = self.PIDcontrol(s[k].x,s[2].x,self.E_x,self.IE_x)
-        a_y,self.E_y,self.IE_y = self.PIDcontrol(s[k].y,s[2].y,self.E_y,self.IE_y)
-        a_x *= 0.4
-        a_y *= 0.4
+        a_x,self.E_x,self.IE_x = self.PIDcontrol(s[k].x,s[self.M].x,self.E_x,self.IE_x)
+        a_y,self.E_y,self.IE_y = self.PIDcontrol(s[k].y,s[self.M].y,self.E_y,self.IE_y)
+        # a_x *= 0.4
+        # a_y *= 0.4
         return a_x,a_y

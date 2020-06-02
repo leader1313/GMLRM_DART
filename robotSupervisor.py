@@ -17,13 +17,15 @@ save = Save('data/')
 load = Load('data/')
 
 Sub = Subscriber()
+# s = [Sub.goal_1,Sub.goal_2,Sub.goal_3,Sub.target_pose]
 s = [Sub.goal_1,Sub.goal_2,Sub.target_pose]
 Pub = Publisher()
+Num_goal = 2
 fail = Fail(s)
 
 command = ("ls data/action | grep")
 
-Num_goal = 2
+
 
 def initialize():
     global state, action
@@ -40,13 +42,13 @@ def main():
     clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 10
-    init_noise = 0.0
+    Max_trajectory = 5
+    init_noise = 0.1
     noise = [init_noise,init_noise]
     sampling_flag = False
     save_flag = False
     fail_flag = False
-    robot = Robot()
+    robot = Robot(Num_goal)
 
     result = {'model_Num' :[]
              ,'Noise':[]
@@ -64,35 +66,36 @@ def main():
         [a_y,E_y,IE_y] = [0.0,0.0,0.0]
         
         button = True
-        k=0
+        k=1
 
         while True:
+            # s = [Sub.goal_1,Sub.goal_2,Sub.goal_3,Sub.endeffector_pose]
             s = [Sub.goal_1,Sub.goal_2,Sub.endeffector_pose]
+        
             fail = Fail(s)
             a_x, a_y = robot.policy(s,k)
             
             axes = [a_y, a_x]
             a = axes
             temp_state, temp_action = save.tempDataframe(s, a, Num_goal)
+            
             fail_flag = fail.fail_check(Sub.simulationTime)
             if button :
-                robot = Robot()
+                robot = Robot(Num_goal)
                 Pub.reset(t)
                 initialize()
-                k += 1
-                k %= 2
+                
                 sampling_flag = True
                 button = False
             elif fail_flag or (Sub.simulationState == 0) :
                 Pub.sim_stop()
                 initialize()
-                k += 1
-                k %= 2
                 sampling_flag = False
                 button = True
                 fail_flag = False
             
             if sampling_flag :
+                # temp_action['v_y1'], temp_action['v_x1']= action1, action2
                 state = save.dataAppend(state,temp_state)
                 action = save.dataAppend(action,temp_action)
                 action1 = Sup_y.sample_action(axes[0])
@@ -105,6 +108,8 @@ def main():
                 if (Sub.success == True) or (fail.success==True) :
                     save_flag = True
             if save_flag :
+                k += 1
+                k %= Num_goal
                 Pub.sim_stop()
                 save.dataSave(state,action,dataNumber)
                 save_flag = False
@@ -112,7 +117,7 @@ def main():
                 Sub.success = False
                 fail.success = False
                 button = True
-                if (dataNumber)%2==0 :
+                if (dataNumber)%Num_goal==0 :
                     dataNumber += 1
                     break
                 dataNumber += 1
@@ -132,16 +137,14 @@ def main():
             Y = action
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
+            
             model = Learning('IMGP',30,X,Y)
-            model.learning(int((dataNumber-1)/2))
-            # GMLRM = Learning('GMLRM',100,X,Y)
-            # GMLRM.learning()
-
-
+            model.learning(int((dataNumber-1)/Num_goal))
+            
             noise = [model.model.Noise,model.model.Noise]
             # noise = [GMLRM.model.Noise[0,0],GMLRM.model.Noise[1,1]]
             result['Noise'].append(noise[0])
-            result['Number_of_Mixture'].append(model.M)
+            result['Number_of_Mixture'].append(model.model.M)
             result['model_Num'].append(i+1)
             df = pd.DataFrame(result)
             df.to_excel('data/Learning_state/LS.xlsx')

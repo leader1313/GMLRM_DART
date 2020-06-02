@@ -1,44 +1,45 @@
 import pandas as pd
-from pandas import Series, DataFrame
+from pandas import Series, DataFrame, concat
 
 class Save(object):
     def __init__(self,file_path):
         self.file_path = file_path
 
     def initDataframe(self, Num_goal):
-        
-        if Num_goal == 1 : 
-            self.init_state = DataFrame(columns =['goal_x1','goal_y1','x_e','y_e'])
-        elif Num_goal == 2 : 
-            self.init_state = DataFrame(columns =['goal_x1','goal_y1','goal_x2','goal_y2','x_e','y_e'])
-        self.init_action = DataFrame(columns =['v_x1','v_y1'])
-
         if Num_goal == 0 : 
             self.init_state = DataFrame(columns =['goal_y1','goal_y2','y_e'])
             self.init_action = DataFrame(columns =['v_y1'])
+        else:
+            End = DataFrame(columns =['x_e','y_e'])
+            Goal = DataFrame()
+            for i in range(Num_goal):
+                New_Goal = DataFrame(columns =['goal_x'+str(i+1),'goal_y'+str(i+1)])
+                Goal = Goal.join(New_Goal)
+            self.init_state = Goal.join(End)
+            
+            self.init_action = DataFrame(columns =['v_x1','v_y1'])
 
         return self.init_state, self.init_action
 
     def tempDataframe(self, state, action, Num_goal):
-        if Num_goal == 1 : 
-            self.temp_state = DataFrame({
-                "goal_x1":[state[0].x],"goal_y1":[state[0].y],
-                "x_e":[state[2].x],"y_e":[state[2].y]
-                })
-        elif Num_goal == 2 : 
-            self.temp_state = DataFrame({
-                "goal_x1":[state[0].x],"goal_y1":[state[0].y],
-                "goal_x2":[state[1].x],"goal_y2":[state[1].y],
-                "x_e":[state[2].x],"y_e":[state[2].y]
-                })
-        self.temp_action = DataFrame({"v_x1":[action[1]],"v_y1":[action[0]]})
-
         if Num_goal == 0 : 
             self.temp_state = DataFrame({
                 "goal_y1":[state[0].y],"goal_y2":[state[1].y],
                 "y_e":[state[2].y]
                 })
             self.temp_action = DataFrame({"v_y1":[action[0]]})
+        else: 
+            End = DataFrame({"x_e":[state[Num_goal].x],"y_e":[state[Num_goal].y]})
+            
+            Goal = DataFrame()
+            for i in range(Num_goal):
+                New_Goal = DataFrame({"goal_x"+str(i+1):[state[i].x],"goal_y"+str(i+1):[state[i].y]})
+                Goal = concat([Goal,New_Goal],axis = 1)
+            
+            self.temp_state = Goal.join(End)
+            self.temp_action = DataFrame({"v_x1":[action[1]],"v_y1":[action[0]]})
+
+        
 
         return self.temp_state, self.temp_action
 

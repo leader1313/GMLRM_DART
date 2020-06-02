@@ -24,7 +24,7 @@ class IMGP:
         self.v_beta_a = torch.ones(self.M)
         self.v_beta_b = torch.ones(self.M)*torch.exp(self.alpha)
 
-        self.q_f_mean = torch.tensor(np.random.normal(0, 0.01, (self.M, self.N, self.D))).float()
+        self.q_f_mean = torch.tensor(np.random.normal(0, 0.09, (self.M, self.N, self.D))).float()
         self.q_f_sig = torch.stack([torch.eye(self.N) for m in range(self.M)])
 
     def update_q_z(self):
@@ -180,6 +180,9 @@ class IMGP:
 # E_zv(p(z|v))======================================================================================
         tmp_sum = torch.zeros(self.M)    
         ln_rho = torch.zeros(ind.shape[0])
+        r = copy.deepcopy(self.q_z_pi)
+        r[r!=0] = torch.log(r[r!=0])
+
         for m in range(0,self.M):
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 tmp_sum[m] += E_ln_v[m]
@@ -187,24 +190,9 @@ class IMGP:
                     tmp_sum[m] += E_ln_1_minus_v[i]
 
                 E_zv += (self.q_z_pi[m][ind]*(tmp_sum[m])).sum()
-                # E_zv -= self.q_z_pi[m][ind][None,...].mm(torch.log(self.q_z_pi[m][ind][...,None])).sum()
+                E_zv -= (self.q_z_pi[m][ind][None,...].mm(r[m][ind][...,None])).sum()
                 
-                # ln_rho += -0.5/sigma * ((self.Y[ind]-self.q_f_mean[m][ind])**2).sum(1) \
-                #             -0.5/sigma * torch.diag(self.q_f_sig[m])[ind] \
-                #             -0.5*torch.log(np.pi*2*sigma)*self.D \
-                #             + (tmp_sum[m])
-        
-        # for m in range(0,self.M):
-        #     if self.q_z_pi[m].sum() > self.prob_thresh:
-        #         ln_rho_1 = -0.5/sigma * ((self.Y[ind]-self.q_f_mean[m][ind])**2).sum(1) \
-        #                     -0.5/sigma * torch.diag(self.q_f_sig[m])[ind] \
-        #                     -0.5*torch.log(np.pi*2*sigma)*self.D
-
-                # E_zv += self.q_z_pi[m][ind][None,...].mm((ln_rho_1 - ln_rho)[...,None]).sum()
-
-#======================================================================================                
-
-# KL(v*|v)
+# KL(v*|v)=============================================================================                
         for m in range(0,self.M):
             if self.q_z_pi[m].sum() > self.prob_thresh:
                 kl_v += torch.lgamma(v_beta_a[m]+v_beta_b[m])-torch.lgamma(v_beta_a[m])-torch.lgamma(v_beta_b[m])
@@ -246,7 +234,7 @@ class IMGP:
                     stop_flag = True
                     
         self.load_checkpoint()
-        limit_prob = self.N*(1/self.M)*0.1
+        limit_prob = self.N*(1/self.M)
         
         print(self.q_z_pi.sum(axis = 1))
         M = self.q_z_pi.sum(axis = 1) > limit_prob
