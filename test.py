@@ -17,8 +17,8 @@ Pub = Publisher()
 # IMGP_filename = 'IMGP_model/DART/learner12.pickle'
 # IMGP_filename = 'IMGP_model/push_pick_BC/learner8.pickle'
 # IMGP_filename = 'IMGP_model/push_pick_DART/learner4.pickle'
-IMGP_filename = 'IMGP_model/2DART/learner5.pickle'
-# IMGP_filename = 'IMGP_model/learner5.pickle'
+# IMGP_filename = 'IMGP_model/2DART/learner5.pickle'
+IMGP_filename = 'IMGP_model/learner5.pickle'
 
 # IMGP_filename = 'OMGP_model/learner7.pickle'
 # IMGP_filename = 'OMGP_model/DART/learner15.pickle'

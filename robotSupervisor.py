@@ -43,7 +43,7 @@ def main():
     ####### Initialize Parameters
     dataNumber = 1
     Max_trajectory = 5
-    init_noise = 0.0
+    init_noise = 0.1
     noise = [init_noise,init_noise]
     sampling_flag = False
     save_flag = False
@@ -95,6 +95,7 @@ def main():
                 fail_flag = False
             
             if sampling_flag :
+                # temp_action['v_y1'], temp_action['v_x1']= action1, action2
                 state = save.dataAppend(state,temp_state)
                 action = save.dataAppend(action,temp_action)
                 action1 = Sup_y.sample_action(axes[0])
