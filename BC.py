@@ -40,17 +40,12 @@ def main():
     clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 5
-    init_noise = 0.0
-    noise = [init_noise,init_noise]
+    Max_trajectory = 10
     sampling_flag = False
     save_flag = False
     fail_flag = False
     robot = Robot(Num_goal)
 
-    result = {'model_Num' :[]
-             ,'Noise':[]
-             ,'Number_of_Mixture':[]}
     row = 0
     col = 0
     initialize()
@@ -58,8 +53,8 @@ def main():
     rospy.on_shutdown(shutdown)
     rate = rospy.Rate(10)
     for t in range(Max_trajectory):
-        Sup_x = Supervisor(noise[0])
-        Sup_y = Supervisor(noise[1])
+        Sup_x = Supervisor(0.0)
+        Sup_y = Supervisor(0.0)
         [a_x,E_x,IE_x] = [0.0,0.0,0.0]
         [a_y,E_y,IE_y] = [0.0,0.0,0.0]
         
@@ -137,18 +132,10 @@ def main():
             Y2 = Y['v_y1']
             
             model = Learning('IMGP',30,X,Y)
-            model.learning(int((dataNumber-1)/Num_goal))
-            
-            noise = [model.model.Noise,model.model.Noise]
-            
-            result['Noise'].append(noise[0])
-            result['Number_of_Mixture'].append(model.model.M)
-            result['model_Num'].append(i+1)
-            df = pd.DataFrame(result)
-            df.to_excel('data/Learning_state/LS.xlsx')
+            # model = Learning('HIMGP',30,X,Y)
+            model.learning(int((dataNumber-1)/Num_goal))            
             
             print("="*40)
-            print("Optimized Noise x: %f, Noise y: %f" %(noise[0],noise[1]))
             print(" \t model saved" )
             print(" \t Number of step %i " %(N))
             print("="*40)

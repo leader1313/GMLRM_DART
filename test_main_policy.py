@@ -24,40 +24,48 @@ def main():
     df = pd.DataFrame(columns=['Model_name', 'success_rate','var_s','var_f'] )
 
     #########  Load model       #######
-    BC_filename = []
-    DART_filename = []
-    for i in range(10):
-        filename = 'IMGP_model/BC/learner'+str(i+1)+'.pickle'
-        BC_filename += [filename]
+    
+    BC1_filename = 'IMGP_model/BC/learner1.pickle'
+    BC2_filename = 'IMGP_model/BC/learner2.pickle'
+    BC3_filename = 'IMGP_model/BC/learner3.pickle'
+    BC4_filename = 'IMGP_model/BC/learner4.pickle'
+    BC5_filename = 'IMGP_model/BC/learner5.pickle'
 
-    for j in range(10):
-        filename = 'HIMGP_model/DART/learner'+str(j+1)+'.pickle'
-        DART_filename += [filename]
+    DART1_filename = 'HIMGP_model/DART/learner1.pickle'
+    DART2_filename = 'HIMGP_model/DART/learner2.pickle'
+    DART3_filename = 'HIMGP_model/DART/learner3.pickle'
+    DART4_filename = 'HIMGP_model/DART/learner4.pickle'
+    DART5_filename = 'HIMGP_model/DART/learner5.pickle'
     
-    models = BC_filename + DART_filename
+
+    # models = [BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename
+    #           ,BC6_filename,BC7_filename,BC8_filename,BC9_filename,BC10_filename
+    #           ,DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
+    #           ,DART6_filename,DART7_filename,DART8_filename,DART9_filename,DART10_filename]
+    models = [DART1_filename,DART2_filename,DART3_filename,DART4_filename,DART5_filename
+              ,BC1_filename,BC2_filename,BC3_filename,BC4_filename,BC5_filename]
+    models = [BC4_filename]
     
-    print(models)
-    
+    models = [DART5_filename]
+
     models = ['HIMGP_model/DART/learner9.pickle']
-
     #########  model selection  #######
     for filename in models:
         model = joblib.load(filename)
         #max trial definition
         '''we want to 100 trial per one mixture.'''
+        _, main_policy_label = model.q_z_pi.sum(axis = 1).min(0)
         Max_mixture = model.M
-
-        Max_trial = Max_mixture * 100
+        Max_trial =  2
         #mean of Variance
-        Sum_ss = 0
-        Sum_fs = 0
+        Sum_ss = 0.0
+        Sum_fs = 0.0
         N_s = 0.0
         N_f = 0.0
         var_s=0.0
         var_f=0.0
         successRate = 0.0
         trial = 0
-        num_Mixture = 0
         #########  100s trial       #######
         while (trial < Max_trial) :
             trial += 1
@@ -67,7 +75,6 @@ def main():
             sampling_flag = False
             Sub.success = False
             fail_flag = False
-            if trial > int((num_Mixture+1)*(Max_trial)/Max_mixture): num_Mixture += 1
         #########  While trial      ####### 
             start_flag = True   
             
@@ -86,13 +93,14 @@ def main():
                 mm_action, ss_action = model.predict(te_temp)
 
             #### Action and regret
-                # ss, k = ss_action.max(0)
-                # k = int(k)
-                noise = torch.tensor(np.random.normal(0,0.5,1))
-                a_x = mm_action[num_Mixture][0][0]
-                a_y = mm_action[num_Mixture][0][1]
-                ss = ss_action[num_Mixture]
-         
+
+                a_x = mm_action[main_policy_label][0][0]
+                a_y = mm_action[main_policy_label][0][1]
+                ss = ss_action[main_policy_label]
+                # Constraint for safeF
+                if abs(a_y) > 0.9 :
+                    a_y /= abs(a_y)
+                    a_y *= 0.9
                 action = [a_y,a_x]   
                 
             #### Control
@@ -100,7 +108,6 @@ def main():
                 if start_flag :
                     time = int(random.uniform(-1,12))
                     Pub.reset(time)
-                    rate.sleep()
                     sampling_flag = True
                     fail_flag =False
                     start_flag = False
@@ -121,16 +128,17 @@ def main():
                     Pub.sim_stop()
                     temp_ss /= step
                     if Sub.success == True : 
-                        N_s += 1
+                        N_s += 1.0
                         Sum_ss += temp_ss
                     elif fail_flag == True : 
-                        N_f += 1
+                        N_f += 1.0
                         Sum_fs += temp_ss
                     break
                     
                 rate.sleep()
             print('Model : %s , Trial : %i, s : %i, f : %i'%(filename,trial, N_s,N_f))
-        successRate = N_s/Max_trial
+        
+        successRate = (N_s/Max_trial)
         if N_s > 0:
             var_s = Sum_ss/N_s
         else : var_s = 0

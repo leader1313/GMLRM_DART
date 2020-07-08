@@ -10,8 +10,11 @@ OMGP_model/
 OMGP_model/*.pickle
 IMGP_model/
 IMGP_model/*.pickle
+HIMGP_model/
+HIMGP_model/*.pickle
 neu_ml/
 GP_model/
+GP_model/*.pickle
 GMLRM_model/
 model/*.pickle
 image/

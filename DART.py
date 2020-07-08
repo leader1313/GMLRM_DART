@@ -40,9 +40,11 @@ def main():
     clear()
     ####### Initialize Parameters
     dataNumber = 1
-    Max_trajectory = 5
+    Max_trajectory = 10
     init_noise = 0.0
     noise = [init_noise,init_noise]
+    old_sigma = []
+    N_K = []
     sampling_flag = False
     save_flag = False
     fail_flag = False
@@ -58,13 +60,14 @@ def main():
     rospy.on_shutdown(shutdown)
     rate = rospy.Rate(10)
     for t in range(Max_trajectory):
+        
         Sup_x = Supervisor(noise[0])
         Sup_y = Supervisor(noise[1])
         [a_x,E_x,IE_x] = [0.0,0.0,0.0]
         [a_y,E_y,IE_y] = [0.0,0.0,0.0]
         
         button = True
-        k=1
+        k=0
 
         while True:
             # s = [Sub.goal_1,Sub.goal_2,Sub.goal_3,Sub.endeffector_pose]
@@ -93,12 +96,12 @@ def main():
                 fail_flag = False
             
             if sampling_flag :
-                # temp_action['v_y1'], temp_action['v_x1']= action1, action2
-                state = save.dataAppend(state,temp_state)
-                action = save.dataAppend(action,temp_action)
                 action1 = Sup_y.sample_action(axes[0])
                 action2 = Sup_x.sample_action(axes[1])
                 sample_action = [action1,action2]
+                # temp_action['v_y1'], temp_action['v_x1']= action1, action2
+                state = save.dataAppend(state,temp_state)
+                action = save.dataAppend(action,temp_action)
                 Pub.actionInput(sample_action)
                 if Sub.simulationTime >1.0 :
                     fail.simple_success()
@@ -106,6 +109,7 @@ def main():
                 if (Sub.success == True) or (fail.success==True) :
                     save_flag = True
             if save_flag :
+                # k = 0
                 k += 1
                 k %= Num_goal
                 Pub.sim_stop()
@@ -136,10 +140,13 @@ def main():
             Y1 = Y['v_x1']
             Y2 = Y['v_y1']
             
-            model = Learning('IMGP',30,X,Y)
+            model = Learning('HIMGP',30,X,Y,old_sigma=old_sigma,K=N_K)
             model.learning(int((dataNumber-1)/Num_goal))
-            
-            noise = [model.model.Noise,model.model.Noise]
+
+            old_sigma = model.model.old_sigma
+            N_K = model.model.N_K
+            K = len(model.model.N_K)-1
+            noise = [model.model.Noise[K],model.model.Noise[K]]
             
             result['Noise'].append(noise[0])
             result['Number_of_Mixture'].append(model.model.M)

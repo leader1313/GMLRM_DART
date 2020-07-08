@@ -10,6 +10,7 @@ class Supervisor():
     def sample_action(self,action):
         in_a = action
         sampled_action = np.random.normal(0,self.sigma,1) + in_a
+        sampled_action = np.clip(sampled_action,-1,1)
         return sampled_action
 
     def intended_action(self, action):
@@ -33,7 +34,6 @@ def main():
     while True:
         axes, buttons = Pub.joyInput()
         Pub.actionInput(Sup.sample_action(axes))
-        
         
         rate.sleep()
     rospy.spin()

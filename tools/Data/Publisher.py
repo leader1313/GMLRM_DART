@@ -1,6 +1,6 @@
 import sys
-sys.path.append('/home/hanbit-o/python/GMLRM_DART/tools/')
-from GamePad import *
+sys.path.append('/home/hanbit/python/GMLRM_DART/tools/')
+# from GamePad import *
 import os, time, rospy,random, math
 import numpy as np
 from geometry_msgs.msg import Point
@@ -10,11 +10,11 @@ from itertools import permutations
 
 class Publisher(object):
     def __init__(self):
-        self.game_pad = GamePad(0)
-        self.game_pad.button_mode_[0] = 1
-        self.game_pad.button_mode_[1] = 1
-        self.game_pad.button_mode_[2] = 1
-        self.game_pad.button_mode_[3] = 1
+        # self.game_pad = GamePad(0)
+        # self.game_pad.button_mode_[0] = 1
+        # self.game_pad.button_mode_[1] = 1
+        # self.game_pad.button_mode_[2] = 1
+        # self.game_pad.button_mode_[3] = 1
 
         self.game_pad_state = Float32MultiArray()
         self.action_pub = rospy.Publisher('Action', Float32MultiArray, queue_size = 10)
@@ -33,7 +33,8 @@ class Publisher(object):
         rospy.sleep(0.2)
         self.sim_start()
         rospy.sleep(0.5)
-        # self.reset_target_pub.publish(self.random_start_pose())
+        #Random init grip Pose=======================
+        self.reset_target_pub.publish(self.random_start_pose())
         points = self.goal_point(i)
         #random reset=====================================================
         # self.reset_goal1_pub.publish(self.random_goal_pose())
@@ -73,6 +74,7 @@ class Publisher(object):
         # y = [-0.3,-0.1, 0.1]
         y = [-0.25,0.05]
         
+        
         totalpose = int(len(x)*len(y))
         points =np.ones((totalpose,2))
         t=0
@@ -86,10 +88,10 @@ class Publisher(object):
 
     
     def random_start_pose(self):
-        max_X_length = 0.03
-        max_Y_length = 0.1
-        center_x = -0.41+0.05
-        center_y = -0.11 
+        max_X_length = 0.04
+        max_Y_length = 0.05
+        center_x = -0.41+0.06
+        center_y = -0.11
     
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
         y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)
@@ -107,10 +109,10 @@ class Publisher(object):
     #     center_x = -0.8
     #     center_y = -0.1   
     def random_goal_pose(self,x,y):
-        max_X_length = 0.0
-        max_Y_length = 0.0
-        center_x = x
-        center_y = y
+        max_X_length = 0.06
+        max_Y_length = 0.05
+        center_x = x+0.0
+        center_y = y+0.0
     
         x = center_x + random.uniform(-max_X_length/2,max_X_length/2)
         y = center_y + random.uniform(-max_Y_length/2,max_Y_length/2)
@@ -120,11 +122,11 @@ class Publisher(object):
         self.goal_pose.z = self.init_target.z
         return self.goal_pose
     
-    def joyInput(self):
-        self.game_pad.Update()
-        self.axes = [i * 50 for i in (self.game_pad.axes_[:2])]
-        self.buttons = self.game_pad.buttons_[:4]
-        return self.axes, self.buttons
+    # def joyInput(self):
+    #     self.game_pad.Update()
+    #     self.axes = [i * 50 for i in (self.game_pad.axes_[:2])]
+    #     self.buttons = self.game_pad.buttons_[:4]
+    #     return self.axes, self.buttons
 
     def actionInput(self, action):
         self.game_pad_state.data = list(action)

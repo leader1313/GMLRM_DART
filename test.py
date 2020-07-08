@@ -12,29 +12,13 @@ Sub = Subscriber()
 Pub = Publisher()
 
 #########  Load model  #######
-# GMLRM_filename = 'GMLRM_model/learner.pickle'
-# OMGP_filename1 = 'OMGP_model/learner11x.pickle'
-# IMGP_filename = 'IMGP_model/DART/learner12.pickle'
-# IMGP_filename = 'IMGP_model/push_pick_BC/learner8.pickle'
-# IMGP_filename = 'IMGP_model/push_pick_DART/learner4.pickle'
-# IMGP_filename = 'IMGP_model/2DART/learner5.pickle'
-IMGP_filename = 'IMGP_model/learner5.pickle'
 
-# IMGP_filename = 'OMGP_model/learner7.pickle'
-# IMGP_filename = 'OMGP_model/DART/learner15.pickle'
-# IMGP_filename = 'OMGP_model/BC/learner15.pickle'
+# IMGP_filename = 'HIMGP_model/learner5.pickle'
+IMGP_filename = 'IMGP_model/learner10.pickle'
 
-# IMGP_filename = 'OMGP_model/limited_random_DART/learner12.pickle'
-# IMGP_filename = 'OMGP_model/push_pick_DART/learner12.pickle'
-# IMGP_filename = 'OMGP_model/learner12.pickle'
 
-# IMGP_filename = 'IMGP_model/DART/learner30.pickle'
-
-# GMM = joblib.load(GMLRM_filename)
-# OMGP = joblib.load(OMGP_filename)
 IMGP = joblib.load(IMGP_filename)
-# OMGPx = joblib.load(OMGP_filename1)
-# OMGPy = joblib.load(OMGP_filename2)
+
 
 def shutdown():
     print ('ros shutdown')
@@ -91,10 +75,11 @@ def main():
         # else: k = 0
         # ss, k = ss_action.min(0)
         # k = int(k)
-        print(k)
-        a_x = mm_action[k][0][0]
-        a_y = mm_action[k][0][1]
+        
+        a_x, a_y = mm_action[k,0]
+
         IMGP_a = [a_y,a_x]
+        
        
         # a_x = GMM.predict(s)[k][0]
         # a_y = GMM.predict(s)[k][1]
@@ -124,10 +109,9 @@ def main():
             sampling_flag = False
         
         elif (buttons[0]) :
-            # kflag = not kflag
             k += 1
             k %=n_regressors
-            print(kflag)
+            print(k,kflag)
 
         if Sub.success == True :
             save_flag = True
